@@ -4,10 +4,12 @@ A stripped-down multi-agent chat system with conversation history that persists 
 
 ## Features
 
+- **Dual Interface**: Run as Streamlit web app (default) or CLI mode
 - **Master Agent**: Orchestrates and routes requests to specialized agents using LLM-based classification
 - **Chat Agent**: Handles general conversation with context awareness
 - **Conversation History**: Persistent chat history that spans across agents
 - **Security & Rate Limiting**: Input validation and rate limiting to prevent abuse
+- **Web UI**: Modern Streamlit interface with chat display and controls
 - **Interactive CLI**: Command-line interface with multiple commands
 - **Auto-save**: Automatically saves conversation history on shutdown
 - **Verbose Mode**: Optional detailed logging for debugging
@@ -71,22 +73,49 @@ AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o
 
 ## Usage
 
-### Run in quiet mode (default)
+The application supports two modes:
+
+### Streamlit Web UI Mode (Default)
+
+Run the web interface on port 8888:
+
 ```bash
+# Option 1: Use the helper script
+./run_streamlit.sh
+
+# Option 2: Direct command
+streamlit run main.py --server.port 8888
+
+# Option 3: Python with default behavior
 python main.py
 ```
 
-### Run with verbose logging
+Then open your browser to: http://localhost:8888
+
+**Web UI Features:**
+- **Chat Area**: Real-time chat interface with message history
+- **Clear Chat**: Remove messages from current session display
+- **Clear History**: Clear conversation history (persistent)
+- **Save History**: Manually save conversation to disk
+- **Copy Output**: Copy assistant responses to clipboard
+- **System Info**: View endpoint, deployment, and agent stats
+- **History Stats**: Track message counts and usage
+
+### CLI Mode
+
+Run in command-line interface mode:
+
 ```bash
-python main.py -v
+# Run CLI in quiet mode
+python main.py --cli
+
+# Run CLI with verbose logging
+python main.py --cli -v
 # or
-python main.py --verbose
+python main.py --cli --verbose
 ```
 
-## Available Commands
-
-During the interactive chat session, you can use these commands:
-
+**CLI Commands:**
 - **status** - Show system status and agent information
 - **history** - Show conversation history statistics and recent messages
 - **clear-history** - Clear all conversation history

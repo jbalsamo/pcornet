@@ -3,6 +3,8 @@ Main application entry point for the Azure OpenAI Chat Agent System.
 """
 import logging
 import argparse
+import streamlit as st
+import pyperclip
 from modules.master_agent import MasterAgent
 from modules.security import InputValidationException, RateLimitException
 
@@ -15,11 +17,20 @@ def setup_logging(verbose: bool = False):
         verbose: If True, show INFO level logs. If False, show WARNING and above only.
     """
     log_level = logging.INFO if verbose else logging.WARNING
+    
+    # Get root logger and clear existing handlers to prevent duplicates
+    root_logger = logging.getLogger()
+    if root_logger.handlers:
+        for handler in root_logger.handlers:
+            root_logger.removeHandler(handler)
+    
+    # Configure logging
     logging.basicConfig(
         level=log_level,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        force=True  # Force reconfiguration if already configured
+        force=True
     )
+    
     if verbose:
         print("📝 Verbose logging enabled (INFO level)")
     else:
@@ -32,11 +43,11 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s              # Run in quiet mode
-  %(prog)s -v           # Run with verbose logging
-  %(prog)s --verbose    # Run with verbose logging (long form)
+  %(prog)s              # Run Streamlit UI on port 8888
+  %(prog)s --cli        # Run in CLI mode
+  %(prog)s --cli -v     # Run in CLI mode with verbose logging
 
-Available commands during chat:
+Available commands during chat (CLI mode):
   status         - Show system status
   history        - Show conversation history stats
   clear-history  - Clear conversation history
@@ -45,19 +56,20 @@ Available commands during chat:
         """
     )
     parser.add_argument(
+        '--cli',
+        action='store_true',
+        help='Run in CLI mode instead of Streamlit UI'
+    )
+    parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Enable verbose logging (show INFO level logs)'
     )
     return parser.parse_args()
 
-def main():
-    """Main function to run the Azure OpenAI Chat Agent System."""
-    # Parse command-line arguments
-    args = parse_arguments()
-    
-    # Set up logging based on verbose flag
-    setup_logging(verbose=args.verbose)
+def run_cli_mode(verbose: bool = False):
+    """Run the application in CLI mode."""
+    setup_logging(verbose=verbose)
     
     print("🚀 Starting Azure OpenAI Chat Agent System...")
     print("=" * 60)
@@ -177,6 +189,156 @@ def main():
         return 1
     
     return 0
+
+def run_streamlit_mode():
+    """Run the application in Streamlit UI mode."""
+    # Check if we're actually running in Streamlit context
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        if get_script_run_ctx() is None:
+            print("\n❌ Error: Streamlit mode requires running with 'streamlit run'")
+            print("\n📝 To run in Streamlit mode, use one of these commands:")
+            print("   ./run_streamlit.sh")
+            print("   streamlit run main.py --server.port 8888")
+            print("\n💡 Or use CLI mode instead:")
+            print("   python main.py --cli")
+            return
+    except Exception:
+        print("\n❌ Error: Cannot detect Streamlit runtime")
+        print("\n📝 To run in Streamlit mode, use:")
+        print("   streamlit run main.py --server.port 8888")
+        print("\n💡 Or use CLI mode instead:")
+        print("   python main.py --cli")
+        return
+    
+    st.set_page_config(
+        page_title="PCORNET Concept Set Tool",
+        page_icon="🤖",
+        layout="wide"
+    )
+    
+    # Initialize session state
+    if 'agent' not in st.session_state:
+        try:
+            st.session_state.agent = MasterAgent()
+            st.session_state.initialized = True
+        except Exception as e:
+            st.error(f"❌ Failed to initialize agent: {e}")
+            st.error("Please check your .env file configuration:")
+            st.error("- AZURE_OPENAI_ENDPOINT")
+            st.error("- AZURE_OPENAI_API_KEY")
+            st.error("- AZURE_OPENAI_CHAT_DEPLOYMENT")
+            st.session_state.initialized = False
+            return
+    
+    if 'messages' not in st.session_state:
+        st.session_state.messages = []
+    
+    # Header
+    st.title("🤖 PCORNET Concept Set Tool")
+    
+    # Sidebar with info and controls
+    with st.sidebar:
+        st.header("📊 System Info")
+        
+        if st.session_state.initialized:
+            info = st.session_state.agent.get_info()
+            st.text(f"🔗 Endpoint: {info['endpoint']}")
+            st.text(f"🤖 Deployment: {info['deployment']}")
+            st.text(f"📋 API Version: {info['api_version']}")
+            
+            if info['specialized_agents']:
+                st.text(f"🎯 Agents: {', '.join(info['specialized_agents'])}")
+            
+            st.divider()
+            
+            # History stats
+            st.header("💬 History Stats")
+            history_info = st.session_state.agent.get_conversation_history()
+            stats = history_info['stats']
+            st.text(f"Total Messages: {stats['total_messages']}")
+            st.text(f"User Messages: {stats['user_messages']}")
+            st.text(f"Assistant Messages: {stats['assistant_messages']}")
+            
+            st.divider()
+            
+            # Control buttons
+            st.header("🎛️ Controls")
+            
+            if st.button("🗑️ Clear Chat", use_container_width=True, key="clear_chat_btn"):
+                # Reset messages to empty list (fresh state)
+                st.session_state.messages = []
+            
+            if st.button("💾 Save History", use_container_width=True, key="save_history_btn"):
+                if st.session_state.agent.save_conversation_history():
+                    st.success(f"Saved {len(st.session_state.agent.conversation_history)} messages")
+                else:
+                    st.error("Failed to save history")
+    
+    # Main chat area
+    if not st.session_state.initialized:
+        return
+    
+    # Display chat messages
+    chat_container = st.container()
+    with chat_container:
+        for idx, message in enumerate(st.session_state.messages):
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                
+                # Add copy button for assistant messages
+                if message["role"] == "assistant":
+                    # Use a unique key based on message index
+                    if st.button(f"📋 Copy", key=f"copy_msg_{idx}"):
+                        pyperclip.copy(message["content"])
+                        st.success("Copied to clipboard!", icon="✅")
+    
+    # Chat input
+    if prompt := st.chat_input("Type your message here..."):
+        # Add user message to chat
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        # Display user message
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        # Get assistant response
+        with st.chat_message("assistant"):
+            with st.spinner("🤔 Processing..."):
+                try:
+                    response = st.session_state.agent.chat(prompt)
+                    st.markdown(response)
+                    
+                    # Add assistant message to chat
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    
+                except InputValidationException as e:
+                    error_msg = f"⚠️ Input validation error: {e}"
+                    st.error(error_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                    
+                except RateLimitException as e:
+                    error_msg = f"⏱️ {e}"
+                    st.warning(error_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                    
+                except Exception as e:
+                    error_msg = f"❌ Error: {e}"
+                    st.error(error_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+def main():
+    """Main function to run the Azure OpenAI Chat Agent System."""
+    # Parse command-line arguments
+    args = parse_arguments()
+    
+    if args.cli:
+        # Run in CLI mode
+        return run_cli_mode(verbose=args.verbose)
+    else:
+        # Run in Streamlit mode
+        run_streamlit_mode()
+        return 0
 
 if __name__ == "__main__":
     exit_code = main()
