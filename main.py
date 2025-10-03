@@ -234,10 +234,292 @@ def run_streamlit_mode():
     if 'messages' not in st.session_state:
         st.session_state.messages = []
     
-    # Header
-    st.title("🤖 PCORNET Concept Set Tool")
+    if 'dark_mode' not in st.session_state:
+        st.session_state.dark_mode = True  # Start in dark mode
+    
+    # Get theme background color
+    bg_color = "#1e1e1e" if st.session_state.dark_mode else "#ffffff"
+    text_color = "#ffffff" if st.session_state.dark_mode else "#000000"
+    
+    # Simple CSS for pills
+    st.markdown("""
+    <style>
+        /* Minimal pill button styling */
+        div[data-testid="column"] button {
+            border-radius: 14px !important;
+            font-size: 14px !important;
+            padding: 2px 8px !important;
+            min-width: 40px !important;
+            border: 2px solid transparent !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        /* Primary (selected) pill */
+        div[data-testid="column"] button[kind="primary"] {
+            background-color: #0078d4 !important;
+            color: white !important;
+            box-shadow: 0 2px 6px rgba(0, 120, 212, 0.3) !important;
+        }
+        
+        /* Secondary (unselected) pill */
+        div[data-testid="column"] button[kind="secondary"] {
+            background-color: rgba(128, 128, 128, 0.1) !important;
+            color: rgba(128, 128, 128, 0.6) !important;
+        }
+        
+        div[data-testid="column"] button[kind="secondary"]:hover {
+            background-color: rgba(128, 128, 128, 0.2) !important;
+            color: rgba(128, 128, 128, 0.8) !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Title and pills - simple layout, no sticky
+    col1, col2, col3, col4 = st.columns([8, 1, 1, 2])
+    with col1:
+        st.markdown(f'<h2 style="margin: 0; padding: 0.5rem 0; font-size: 1.5rem; font-weight: 600; color: {text_color};">🤖 PCORNET Concept Set Tool</h2>', unsafe_allow_html=True)
+    with col2:
+        if st.button("☀️", key="light_pill", type="primary" if not st.session_state.dark_mode else "secondary"):
+            st.session_state.dark_mode = False
+            st.rerun()
+    with col3:
+        if st.button("🌙", key="dark_pill", type="primary" if not st.session_state.dark_mode else "secondary"):
+            st.session_state.dark_mode = True
+            st.rerun()
+    with col4:
+        st.write("")
+    
+    st.divider()
     
     # Sidebar with info and controls
+    with st.sidebar:
+        st.divider()
+    
+    # Apply theme based on dark_mode state (after toggle to get immediate update)
+    if st.session_state.dark_mode:
+        # Dark Mode Color Palette (based on VS Code Dark+)
+        st.markdown("""
+        <style>
+            /* Dark mode - comprehensive styling */
+            .stApp, [data-testid="stAppViewContainer"], 
+            [data-testid="stHeader"], [data-testid="stToolbar"],
+            main, .main {
+                background-color: #1e1e1e !important;
+                color: #d4d4d4 !important;
+            }
+            .stSidebar, [data-testid="stSidebar"],
+            [data-testid="stSidebarNav"], section[data-testid="stSidebar"] > div {
+                background-color: #252526 !important;
+            }
+            /* All background elements */
+            div[data-testid="stVerticalBlock"],
+            div[data-testid="stHorizontalBlock"] {
+                background-color: transparent !important;
+            }
+            /* Text colors */
+            .stMarkdown, .stText, p, span, div, label {
+                color: #d4d4d4 !important;
+            }
+            /* Headers */
+            h1, h2, h3, h4, h5, h6 {
+                color: #ffffff !important;
+            }
+            /* Input fields */
+            .stTextInput > div > div > input,
+            .stTextArea textarea {
+                background-color: #3c3c3c !important;
+                color: #d4d4d4 !important;
+                border: 1px solid #454545 !important;
+            }
+            .stTextInput > div > div > input:focus,
+            .stTextArea textarea:focus {
+                border-color: #007acc !important;
+            }
+            /* Chat input - comprehensive with unified container */
+            .stChatInput, [data-testid="stChatInput"],
+            .stChatInput > div, [data-testid="stChatInput"] > div,
+            .stChatFloatingInputContainer {
+                background-color: #3a3a3a !important;
+            }
+            /* Chat input floating container */
+            .stChatInput, .stChatFloatingInputContainer {
+                background-color: #3a3a3a !important;
+                border-top: 2px solid #454545 !important;
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .stChatInput > div > div > input,
+            [data-testid="stChatInput"] input,
+            .stChatInput textarea,
+            [data-testid="stChatInput"] textarea {
+                background-color: #3c3c3c !important;
+                color: #d4d4d4 !important;
+                border: 2px solid #ffffff !important;
+            }
+            .stChatInput > div > div > input::placeholder,
+            [data-testid="stChatInput"] input::placeholder {
+                color: #858585 !important;
+            }
+            /* Buttons */
+            .stButton > button {
+                background-color: #0e639c !important;
+                color: #ffffff !important;
+                border: 1px solid #007acc !important;
+            }
+            .stButton > button:hover {
+                background-color: #1177bb !important;
+                border-color: #1177bb !important;
+            }
+            /* Chat messages */
+            .stChatMessage, [data-testid="stChatMessage"] {
+                background-color: #2d2d30 !important;
+                color: #d4d4d4 !important;
+            }
+            .stChatMessage p {
+                color: #d4d4d4 !important;
+            }
+            /* Toggle switch */
+            .stCheckbox, .stRadio, .stToggle {
+                color: #d4d4d4 !important;
+            }
+            /* Dividers */
+            hr {
+                border-color: #454545 !important;
+            }
+            /* Success/Error messages */
+            .stSuccess {
+                background-color: #1e3a1e !important;
+                color: #4ec9b0 !important;
+            }
+            .stError {
+                background-color: #3a1e1e !important;
+                color: #f48771 !important;
+            }
+            /* Tooltips - dark mode */
+            [data-baseweb="tooltip"] {
+                background-color: #3c3c3c !important;
+                color: #d4d4d4 !important;
+                border: 1px solid #454545 !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        # Light Mode Color Palette (based on VS Code Light+)
+        st.markdown("""
+        <style>
+            /* Light mode - comprehensive styling */
+            .stApp, [data-testid="stAppViewContainer"],
+            [data-testid="stHeader"], [data-testid="stToolbar"],
+            main, .main {
+                background-color: #ffffff !important;
+                color: #1e1e1e !important;
+            }
+            .stSidebar, [data-testid="stSidebar"],
+            [data-testid="stSidebarNav"], section[data-testid="stSidebar"] > div {
+                background-color: #f3f3f3 !important;
+            }
+            /* All background elements */
+            div[data-testid="stVerticalBlock"],
+            div[data-testid="stHorizontalBlock"] {
+                background-color: transparent !important;
+            }
+            /* Text colors */
+            .stMarkdown, .stText, p, span, div, label {
+                color: #1e1e1e !important;
+            }
+            /* Headers */
+            h1, h2, h3, h4, h5, h6 {
+                color: #000000 !important;
+            }
+            /* Input fields */
+            .stTextInput > div > div > input,
+            .stTextArea textarea {
+                background-color: #ffffff !important;
+                color: #1e1e1e !important;
+                border: 1px solid #e0e0e0 !important;
+            }
+            .stTextInput > div > div > input:focus,
+            .stTextArea textarea:focus {
+                border-color: #0078d4 !important;
+            }
+            /* Chat input - comprehensive with unified container */
+            .stChatInput, [data-testid="stChatInput"],
+            .stChatInput > div, [data-testid="stChatInput"] > div,
+            .stChatFloatingInputContainer {
+                background-color: #e8e8e8 !important;
+            }
+            /* Chat input floating container */
+            .stChatInput, .stChatFloatingInputContainer {
+                background-color: #e8e8e8 !important;
+                border-top: 2px solid #e0e0e0 !important;
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .stChatInput > div > div > input,
+            [data-testid="stChatInput"] input,
+            .stChatInput textarea,
+            [data-testid="stChatInput"] textarea {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                border: 2px solid #000000 !important;
+            }
+            .stChatInput > div > div > input::placeholder,
+            [data-testid="stChatInput"] input::placeholder {
+                color: #6c6c6c !important;
+            }
+            /* Ensure text input shows black text */
+            input[type="text"], textarea {
+                color: #000000 !important;
+            }
+            /* Buttons */
+            .stButton > button {
+                background-color: #0078d4 !important;
+                color: #ffffff !important;
+                border: 1px solid #0078d4 !important;
+            }
+            .stButton > button:hover {
+                background-color: #106ebe !important;
+                border-color: #106ebe !important;
+            }
+            /* Chat messages */
+            .stChatMessage, [data-testid="stChatMessage"] {
+                background-color: #f8f8f8 !important;
+                color: #1e1e1e !important;
+            }
+            .stChatMessage p {
+                color: #1e1e1e !important;
+            }
+            /* Toggle switch */
+            .stCheckbox, .stRadio, .stToggle {
+                color: #1e1e1e !important;
+            }
+            /* Dividers */
+            hr {
+                border-color: #e0e0e0 !important;
+            }
+            /* Success/Error messages */
+            .stSuccess {
+                background-color: #dff6dd !important;
+                color: #0e6027 !important;
+            }
+            .stError {
+                background-color: #fde7e9 !important;
+                color: #a80000 !important;
+            }
+            /* Tooltips - light mode */
+            [data-baseweb="tooltip"] {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                border: 2px solid #000000 !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    
+    # Continue with rest of sidebar content
     with st.sidebar:
         st.header("📊 System Info")
         
@@ -263,7 +545,7 @@ def run_streamlit_mode():
             st.divider()
             
             # Control buttons
-            st.header("🎛️ Controls")
+            st.header("🏛️ Controls")
             
             if st.button("🗑️ Clear Chat", use_container_width=True, key="clear_chat_btn"):
                 # Reset messages to empty list (fresh state)
@@ -280,18 +562,9 @@ def run_streamlit_mode():
         return
     
     # Display chat messages
-    chat_container = st.container()
-    with chat_container:
-        for idx, message in enumerate(st.session_state.messages):
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                
-                # Add copy button for assistant messages
-                if message["role"] == "assistant":
-                    # Use a unique key based on message index
-                    if st.button(f"📋 Copy", key=f"copy_msg_{idx}"):
-                        pyperclip.copy(message["content"])
-                        st.success("Copied to clipboard!", icon="✅")
+    for idx, message in enumerate(st.session_state.messages):
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
     
     # Chat input
     if prompt := st.chat_input("Type your message here..."):
@@ -302,7 +575,7 @@ def run_streamlit_mode():
         with st.chat_message("user"):
             st.markdown(prompt)
         
-        # Get assistant response
+        # Get and display assistant response
         with st.chat_message("assistant"):
             with st.spinner("🤔 Processing..."):
                 try:
@@ -313,17 +586,15 @@ def run_streamlit_mode():
                     st.session_state.messages.append({"role": "assistant", "content": response})
                     
                 except InputValidationException as e:
-                    error_msg = f"⚠️ Input validation error: {e}"
+                    error_msg = f"⚠️ Input validation error: {str(e)}"
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
-                    
                 except RateLimitException as e:
-                    error_msg = f"⏱️ {e}"
+                    error_msg = f"⏳ Rate limit exceeded: {str(e)}"
                     st.warning(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
-                    
                 except Exception as e:
-                    error_msg = f"❌ Error: {e}"
+                    error_msg = f"❌ Error: {str(e)}"
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
