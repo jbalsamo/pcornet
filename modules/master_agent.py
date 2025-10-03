@@ -71,7 +71,7 @@ class MasterAgent:
             }
             
             logger.info("Chat agent initialized successfully")
-            
+        
         except ImportError as e:
             logger.warning(f"Chat agent not available: {e}")
             self.specialized_agents = {}
