@@ -28,7 +28,11 @@ wheels/
 
 # Data files
 data/conversation_history.json
+data/chat_history.json
 data/interactions.jsonl
+
+# Saved conversations folder at project root
+saved/
 
 # IDE
 .vscode/

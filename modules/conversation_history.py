@@ -302,3 +302,53 @@ class ConversationHistory:
         except Exception as e:
             logger.error(f"Error deleting conversation history file: {e}")
             return False
+    
+    def save_to_custom_file(self, filename: str) -> bool:
+        """Save conversation history to a custom file in the saved folder.
+        
+        Args:
+            filename: Name of the file (without path, will be saved in saved/)
+            
+        Returns:
+            True if save was successful, False otherwise
+        """
+        try:
+            # Ensure saved directory exists at project root
+            saved_dir = "saved"
+            os.makedirs(saved_dir, exist_ok=True)
+            
+            # Add .json extension if not present
+            if not filename.endswith('.json'):
+                filename = f"{filename}.json"
+            
+            # Construct full path
+            custom_file = os.path.join(saved_dir, filename)
+            
+            # Convert messages to serializable format
+            serializable_messages = []
+            for message in self.messages:
+                msg_dict = {
+                    "role": message.role,
+                    "content": message.content,
+                    "timestamp": message.timestamp.isoformat(),
+                    "agent_type": message.agent_type,
+                    "metadata": message.metadata
+                }
+                serializable_messages.append(msg_dict)
+            
+            # Save to file
+            data = {
+                "max_messages": self.max_messages,
+                "saved_at": datetime.now().isoformat(),
+                "messages": serializable_messages
+            }
+            
+            with open(custom_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            
+            logger.info(f"Saved {len(self.messages)} messages to {custom_file}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving conversation history to custom file: {e}")
+            return False

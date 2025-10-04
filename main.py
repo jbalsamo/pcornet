@@ -190,6 +190,230 @@ def run_cli_mode(verbose: bool = False):
     
     return 0
 
+def save_chat_history_to_file(messages):
+    """Save UI chat messages to data/chat_history.json"""
+    import json
+    from datetime import datetime
+    import os
+    
+    try:
+        os.makedirs("data", exist_ok=True)
+        chat_data = {
+            "saved_at": datetime.now().isoformat(),
+            "messages": messages
+        }
+        with open("data/chat_history.json", 'w', encoding='utf-8') as f:
+            json.dump(chat_data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving chat history: {e}")
+        return False
+
+def save_chat_history_to_custom_file(messages, filename):
+    """Save UI chat messages to saved/ directory with custom filename.
+    
+    DEPRECATED: This function is no longer used. The conversation history save method
+    is now used exclusively for saving conversations to the saved/ directory.
+    
+    Args:
+        messages: List of UI messages to save
+        filename: Filename (without extension) to save as
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    import json
+    from datetime import datetime
+    import os
+    
+    try:
+        os.makedirs("saved", exist_ok=True)
+        
+        # Add .json extension if not present
+        if not filename.endswith('.json'):
+            filename = f"{filename}.json"
+        
+        chat_data = {
+            "saved_at": datetime.now().isoformat(),
+            "messages": messages
+        }
+        
+        filepath = os.path.join("saved", filename)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(chat_data, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"Saved UI chat history to {filepath}")
+        return True
+    except Exception as e:
+        logger.error(f"Error saving chat history to custom file: {e}")
+        return False
+
+def load_chat_history_from_file():
+    """Load UI chat messages from data/chat_history.json"""
+    import json
+    import os
+    
+    try:
+        if os.path.exists("data/chat_history.json"):
+            with open("data/chat_history.json", 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get("messages", [])
+        return []
+    except Exception as e:
+        logger.error(f"Error loading chat history: {e}")
+        return []
+
+def get_saved_conversations():
+    """Get list of all saved conversations in reverse chronological order.
+    
+    Returns:
+        List of tuples (filename_without_ext, full_path, modified_time)
+    """
+    import os
+    import glob
+    
+    try:
+        if not os.path.exists("saved"):
+            return []
+        
+        # Get all json files in saved directory
+        files = glob.glob("saved/*.json")
+        
+        # Get file info with modification time
+        file_info = []
+        for filepath in files:
+            filename = os.path.basename(filepath)
+            name_without_ext = os.path.splitext(filename)[0]
+            mod_time = os.path.getmtime(filepath)
+            file_info.append((name_without_ext, filepath, mod_time))
+        
+        # Sort by modification time, newest first
+        file_info.sort(key=lambda x: x[2], reverse=True)
+        
+        return file_info
+    except Exception as e:
+        logger.error(f"Error getting saved conversations: {e}")
+        return []
+
+def load_saved_conversation(filepath: str, agent):
+    """Load a saved conversation and restore it to the current session.
+    
+    Args:
+        filepath: Path to the saved conversation JSON file
+        agent: MasterAgent instance
+    """
+    import json
+    
+    try:
+        logger.info(f"Loading conversation from {filepath}")
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Clear current history
+        agent.conversation_history.messages.clear()
+        
+        messages = data.get("messages", [])
+        logger.info(f"Found {len(messages)} messages in file")
+        
+        # Check if this is the UI chat format (simple role/content) or conversation history format (with timestamp)
+        if messages and "timestamp" in messages[0]:
+            # This is the full conversation history format
+            logger.info("Loading full conversation history format (with timestamps)")
+            from datetime import datetime
+            from modules.conversation_history import ChatMessage
+            
+            for msg_dict in messages:
+                message = ChatMessage(
+                    role=msg_dict["role"],
+                    content=msg_dict["content"],
+                    timestamp=datetime.fromisoformat(msg_dict["timestamp"]),
+                    agent_type=msg_dict.get("agent_type"),
+                    metadata=msg_dict.get("metadata")
+                )
+                agent.conversation_history.messages.append(message)
+        else:
+            # This is the simple UI chat format, rebuild conversation history
+            logger.info("Loading simple UI chat format (no timestamps)")
+            from datetime import datetime
+            from modules.conversation_history import ChatMessage
+            
+            for msg_dict in messages:
+                message = ChatMessage(
+                    role=msg_dict["role"],
+                    content=msg_dict["content"],
+                    timestamp=datetime.now(),  # Use current time since we don't have the original
+                    agent_type=msg_dict.get("agent_type"),
+                    metadata=msg_dict.get("metadata")
+                )
+                agent.conversation_history.messages.append(message)
+        
+        # Build UI messages from conversation history
+        ui_messages = []
+        for message in agent.conversation_history.messages:
+            if message.role in ["user", "assistant"]:
+                ui_messages.append({
+                    "role": message.role,
+                    "content": message.content
+                })
+        
+        logger.info(f"Built {len(ui_messages)} UI messages for display")
+        return ui_messages
+        
+    except Exception as e:
+        logger.error(f"Error loading saved conversation from {filepath}: {e}", exc_info=True)
+        return []
+
+def generate_chat_title(first_user_message: str, agent) -> str:
+    """Generate a short, meaningful title for the chat using AI.
+    
+    Args:
+        first_user_message: The first user message in the conversation
+        agent: The MasterAgent instance to use for generation
+        
+    Returns:
+        A short filename-safe title (2-4 words, max 40 chars)
+    """
+    try:
+        prompt = f"""Create a SHORT title (2-4 words ONLY) that captures the main topic of this question:
+
+"{first_user_message}"
+
+Requirements:
+- EXACTLY 2-4 words
+- Maximum 40 characters total
+- Capture the core topic/subject
+- Use simple, clear words
+- No quotes, punctuation, or special characters
+
+Examples:
+- "How do I deploy to Azure?" → "Azure Deployment"
+- "What's the best way to handle errors in Python?" → "Python Error Handling"
+- "Can you help me debug this code?" → "Code Debugging"
+
+Return ONLY the title (2-4 words), nothing else."""
+
+        title = agent.llm.invoke(prompt).content.strip()
+        
+        # Clean the title to be filename-safe
+        import re
+        # Remove quotes if present
+        title = title.strip('"\'')
+        # Remove special chars except spaces and hyphens
+        title = re.sub(r'[^\w\s-]', '', title)
+        # Replace multiple spaces with single space
+        title = re.sub(r'\s+', ' ', title)
+        # Limit to 40 chars
+        title = title[:40]
+        # Replace spaces with underscores for filename
+        title = title.replace(' ', '_')
+        
+        return title if title else "untitled_conversation"
+        
+    except Exception as e:
+        logger.error(f"Error generating chat title: {e}")
+        from datetime import datetime
+        return f"conversation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
 def run_streamlit_mode():
     """Run the application in Streamlit UI mode."""
     # Check if we're actually running in Streamlit context
@@ -212,7 +436,7 @@ def run_streamlit_mode():
         return
     
     st.set_page_config(
-        page_title="PCORNET Concept Set Tool",
+        page_title="Azure OpenAI Chat Agent",
         page_icon="🤖",
         layout="wide"
     )
@@ -232,18 +456,117 @@ def run_streamlit_mode():
             return
     
     if 'messages' not in st.session_state:
-        st.session_state.messages = []
+        # Load chat history from file if it exists
+        st.session_state.messages = load_chat_history_from_file()
+        logger.info(f"Initialized session with {len(st.session_state.messages)} messages from chat_history.json")
     
     if 'dark_mode' not in st.session_state:
         st.session_state.dark_mode = True  # Start in dark mode
+    
+    if 'current_conversation_name' not in st.session_state:
+        st.session_state.current_conversation_name = None  # Track currently loaded conversation
+    
+    if 'delete_confirm_chat' not in st.session_state:
+        st.session_state.delete_confirm_chat = None  # Track chat pending deletion
+    
     
     # Get theme background color
     bg_color = "#1e1e1e" if st.session_state.dark_mode else "#ffffff"
     text_color = "#ffffff" if st.session_state.dark_mode else "#000000"
     
-    # Simple CSS for pills
+    # Simple CSS for pills and sidebar spacing
     st.markdown("""
     <style>
+        /* Minimize top padding in sidebar */
+        section[data-testid="stSidebar"] > div:first-child {
+            padding-top: 0.25rem !important;
+        }
+        
+        /* Reduce sidebar padding and margins */
+        section[data-testid="stSidebar"] > div {
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Reduce spacing between sidebar elements */
+        section[data-testid="stSidebar"] .element-container {
+            margin-bottom: 0.1rem !important;
+        }
+        
+        /* Reduce header spacing */
+        section[data-testid="stSidebar"] h1, 
+        section[data-testid="stSidebar"] h2, 
+        section[data-testid="stSidebar"] h3 {
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.25rem !important;
+            padding-top: 0 !important;
+        }
+        
+        /* Reduce button spacing in sidebar */
+        section[data-testid="stSidebar"] button {
+            margin-top: 0.1rem !important;
+            margin-bottom: 0.1rem !important;
+            padding: 0.25rem 0.5rem !important;
+        }
+        
+        /* Reduce divider spacing */
+        section[data-testid="stSidebar"] hr {
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        
+        /* Reduce text element spacing */
+        section[data-testid="stSidebar"] .stText {
+            margin-bottom: 0.1rem !important;
+            line-height: 1.3 !important;
+        }
+        
+        /* Reduce block container spacing */
+        section[data-testid="stSidebar"] .block-container {
+            padding-top: 0.5rem !important;
+        }
+        
+        /* Reduce main content title area padding and position */
+        .main .block-container {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1rem !important;
+        }
+        
+        /* Reduce title/header spacing in main content */
+        .main h1 {
+            margin-top: 0 !important;
+            margin-bottom: 0.25rem !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        
+        /* Reduce spacing after title */
+        .main > div:first-child {
+            margin-bottom: 0.25rem !important;
+        }
+        
+        /* Reduce divider spacing in main content */
+        .main hr {
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        /* Reduce element container spacing in main */
+        .main .element-container {
+            margin-bottom: 0.25rem !important;
+        }
+        
+        /* Reduce padding and margins in chat message containers */
+        .st-emotion-cache-16txtl3 {
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.25rem !important;
+            height: 100% !important;
+        }
+        
         /* Minimal pill button styling */
         div[data-testid="column"] button {
             border-radius: 14px !important;
@@ -519,11 +842,24 @@ def run_streamlit_mode():
         </style>
         """, unsafe_allow_html=True)
     
+    # Initialize collapse state for system info and history stats
+    if 'show_system_info' not in st.session_state:
+        st.session_state.show_system_info = False  # Collapsed by default
+    
+    if 'show_history_stats' not in st.session_state:
+        st.session_state.show_history_stats = False  # Collapsed by default
+    
     # Continue with rest of sidebar content
     with st.sidebar:
-        st.header("📊 System Info")
+        # System Info with collapse button
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.header("📊 System Info")
+        with col2:
+            if st.button("▼" if st.session_state.show_system_info else "▶", key="toggle_system_info"):
+                st.session_state.show_system_info = not st.session_state.show_system_info
         
-        if st.session_state.initialized:
+        if st.session_state.initialized and st.session_state.show_system_info:
             info = st.session_state.agent.get_info()
             st.text(f"🔗 Endpoint: {info['endpoint']}")
             st.text(f"🤖 Deployment: {info['deployment']}")
@@ -531,43 +867,209 @@ def run_streamlit_mode():
             
             if info['specialized_agents']:
                 st.text(f"🎯 Agents: {', '.join(info['specialized_agents'])}")
-            
-            st.divider()
-            
-            # History stats
+        
+        st.divider()
+        
+        # History stats with collapse button
+        col1, col2 = st.columns([4, 1])
+        with col1:
             st.header("💬 History Stats")
+        with col2:
+            if st.button("▼" if st.session_state.show_history_stats else "▶", key="toggle_history_stats"):
+                st.session_state.show_history_stats = not st.session_state.show_history_stats
+        
+        if st.session_state.show_history_stats:
             history_info = st.session_state.agent.get_conversation_history()
             stats = history_info['stats']
             st.text(f"Total Messages: {stats['total_messages']}")
             st.text(f"User Messages: {stats['user_messages']}")
             st.text(f"Assistant Messages: {stats['assistant_messages']}")
+        
+        st.divider()
+        
+        # Control buttons
+        st.header("🏛️ Controls")
+        
+        if st.button("🆕 New Chat", use_container_width=True, key="new_chat_btn", type="primary"):
+            # Only process if we actually need to clear something
+            has_messages = len(st.session_state.messages) > 0
+            has_history = len(st.session_state.agent.conversation_history.messages) > 0
             
-            st.divider()
-            
-            # Control buttons
-            st.header("🏛️ Controls")
-            
-            if st.button("🗑️ Clear Chat", use_container_width=True, key="clear_chat_btn"):
-                # Reset messages to empty list (fresh state)
+            if has_messages or has_history:
+                # Save current conversation if there are messages
+                if st.session_state.messages:
+                    # Find the first user message
+                    first_user_msg = None
+                    for msg in st.session_state.messages:
+                        if msg["role"] == "user":
+                            first_user_msg = msg["content"]
+                            break
+                    
+                    if first_user_msg:
+                        # Use existing conversation name if available, otherwise generate new title
+                        with st.spinner("Saving current chat..."):
+                            if st.session_state.current_conversation_name:
+                                # Reuse the existing conversation name
+                                title = st.session_state.current_conversation_name
+                                logger.info(f"Saving back to existing conversation: {title}")
+                            else:
+                                # Generate new title using AI
+                                title = generate_chat_title(first_user_msg, st.session_state.agent)
+                                logger.info(f"Generated new conversation title: {title}")
+                        
+                        # Save conversation history to saved/ directory with the title
+                        # (This contains all message data including timestamps and metadata)
+                        st.session_state.agent.conversation_history.save_to_custom_file(title)
+                
+                # Clear the agent's conversation history
+                st.session_state.agent.clear_conversation_history()
+                # Clear the UI messages
                 st.session_state.messages = []
+                st.session_state.current_conversation_name = None
+                # Clear current session history file (data/chat_history.json)
+                save_chat_history_to_file(st.session_state.messages)
+                # Refresh the page to update stats
+                st.rerun()
+        
+        st.divider()
+        
+        # Previous Chats Section
+        st.header("💬 Previous Chats")
+        
+        # Get all saved conversations
+        saved_convos = get_saved_conversations()
+        
+        if saved_convos:
+            # Create a scrollable container
+            st.markdown("""
+            <style>
+                .chat-list {
+                    max-height: 400px;
+                    overflow-y: auto;
+                }
+            </style>
+            """, unsafe_allow_html=True)
             
-            if st.button("💾 Save History", use_container_width=True, key="save_history_btn"):
-                if st.session_state.agent.save_conversation_history():
-                    st.success(f"Saved {len(st.session_state.agent.conversation_history)} messages")
-                else:
-                    st.error("Failed to save history")
+            # Display each saved conversation as a button with delete option
+            for name, filepath, _ in saved_convos:
+                # Replace underscores with spaces for display
+                display_name = name.replace('_', ' ')
+                
+                # Create columns for chat button and delete button
+                col1, col2 = st.columns([5, 1])
+                
+                with col1:
+                    chat_clicked = st.button(f"📄 {display_name}", use_container_width=True, key=f"load_{name}")
+                
+                with col2:
+                    delete_clicked = st.button("🗑️", key=f"delete_{name}", help="Delete this conversation")
+                
+                # Handle delete button
+                if delete_clicked:
+                    st.session_state.delete_confirm_chat = (name, filepath, display_name)
+                
+                # Handle chat button
+                if chat_clicked:
+                    # Check if we're clicking the same conversation that's already loaded
+                    if st.session_state.current_conversation_name != name:
+                        # Save current chat before loading new one
+                        if st.session_state.messages:
+                            first_user_msg = None
+                            for msg in st.session_state.messages:
+                                if msg["role"] == "user":
+                                    first_user_msg = msg["content"]
+                                    break
+                            
+                            if first_user_msg:
+                                with st.spinner("💾 Saving current chat..."):
+                                    # Use existing conversation name if available, otherwise generate new title
+                                    if st.session_state.current_conversation_name:
+                                        # Reuse the existing conversation name
+                                        title = st.session_state.current_conversation_name
+                                        logger.info(f"Saving back to existing conversation: {title}")
+                                    else:
+                                        # Generate new title using AI
+                                        title = generate_chat_title(first_user_msg, st.session_state.agent)
+                                        logger.info(f"Generated new conversation title: {title}")
+                                    
+                                    # Save conversation history with the title
+                                    # (This contains all message data including timestamps and metadata)
+                                    st.session_state.agent.conversation_history.save_to_custom_file(title)
+                        
+                        # Load the selected conversation
+                        with st.spinner(f"📂 Loading {display_name}..."):
+                            ui_messages = load_saved_conversation(filepath, st.session_state.agent)
+                            
+                            if ui_messages:
+                                st.session_state.messages = ui_messages
+                                st.session_state.current_conversation_name = name  # Track what we loaded
+                                # Save loaded chat to current history files
+                                save_chat_history_to_file(st.session_state.messages)
+                                st.session_state.agent.save_conversation_history()
+                                logger.info(f"Loaded {len(ui_messages)} messages from {filepath}")
+                            else:
+                                st.error("Failed to load conversation")
+                                logger.error(f"No messages loaded from {filepath}")
+                        
+                        st.rerun()
+        else:
+            st.info("No saved conversations yet. Start chatting to create one!")
+    
+    # Show delete confirmation dialog if a chat is pending deletion
+    if st.session_state.delete_confirm_chat:
+        name, filepath, display_name = st.session_state.delete_confirm_chat
+        
+        st.divider()
+        st.markdown("### ⚠️ Confirm Deletion")
+        st.write(f"Are you sure you want to delete **{display_name}**?")
+        st.write("This action cannot be undone.")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("✅ Yes, Delete", use_container_width=True, type="primary", key="confirm_delete"):
+                import os
+                try:
+                    # Delete the file
+                    os.remove(filepath)
+                    logger.info(f"Deleted conversation: {filepath}")
+                    
+                    # If this was the currently loaded conversation, clear it
+                    if st.session_state.current_conversation_name == name:
+                        st.session_state.current_conversation_name = None
+                        st.session_state.messages = []
+                        st.session_state.agent.clear_conversation_history()
+                        save_chat_history_to_file(st.session_state.messages)
+                    
+                    # Clear the delete confirmation
+                    st.session_state.delete_confirm_chat = None
+                except Exception as e:
+                    st.error(f"❌ Failed to delete: {e}")
+                    logger.error(f"Error deleting {filepath}: {e}")
+                    st.session_state.delete_confirm_chat = None
+        
+        with col2:
+            if st.button("❌ No, Cancel", use_container_width=True, key="cancel_delete"):
+                st.session_state.delete_confirm_chat = None
+        
+        st.divider()
+        # Stop rendering the rest while showing confirmation
+        return
     
     # Main chat area
     if not st.session_state.initialized:
         return
     
     # Display chat messages
+    logger.info(f"Displaying {len(st.session_state.messages)} messages")
     for idx, message in enumerate(st.session_state.messages):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
     # Chat input
     if prompt := st.chat_input("Type your message here..."):
+        # Keep current_conversation_name to save back to the same conversation
+        
         # Add user message to chat
         st.session_state.messages.append({"role": "user", "content": prompt})
         
@@ -584,6 +1086,12 @@ def run_streamlit_mode():
                     
                     # Add assistant message to chat
                     st.session_state.messages.append({"role": "assistant", "content": response})
+                    
+                    # Auto-save conversation history to data/conversation_history.json
+                    st.session_state.agent.save_conversation_history()
+                    
+                    # Auto-save chat history to data/chat_history.json
+                    save_chat_history_to_file(st.session_state.messages)
                     
                 except InputValidationException as e:
                     error_msg = f"⚠️ Input validation error: {str(e)}"

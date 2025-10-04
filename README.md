@@ -28,7 +28,8 @@ pcornet/
 │   └── agents/
 │       ├── __init__.py
 │       └── chat_agent.py  # Chat specialist agent
-├── data/                  # Conversation history storage
+├── data/                  # Current session history storage
+├── saved/                 # Saved conversation archives
 ├── tests/                 # Test files
 ├── requirements.txt       # Python dependencies
 ├── .env.template         # Environment variables template
@@ -94,12 +95,13 @@ Then open your browser to: http://localhost:8888
 
 **Web UI Features:**
 - **Chat Area**: Real-time chat interface with message history
-- **Clear Chat**: Remove messages from current session display
-- **Clear History**: Clear conversation history (persistent)
-- **Save History**: Manually save conversation to disk
-- **Copy Output**: Copy assistant responses to clipboard
-- **System Info**: View endpoint, deployment, and agent stats
-- **History Stats**: Track message counts and usage
+- **New Chat**: Save current conversation and start fresh
+- **Previous Chats**: Load and manage saved conversations
+- **Delete Conversations**: Remove saved chats with confirmation
+- **AI-Generated Titles**: Automatic naming of saved conversations
+- **System Info** (Collapsible): View endpoint, deployment, and agent stats
+- **History Stats** (Collapsible): Track message counts and usage
+- **Dark Mode**: Theme toggle for comfortable viewing
 
 ### CLI Mode
 
@@ -140,8 +142,11 @@ python main.py --cli --verbose
 
 - **Rolling Window**: Keeps last N messages (default: 20, configurable)
 - **Cross-Agent**: History spans all agents for context continuity
-- **Persistence**: Auto-loads on startup, auto-saves on shutdown
-- **Storage**: JSON format in `data/conversation_history.json`
+- **Dual Storage**:
+  - Current session: `data/conversation_history.json` and `data/chat_history.json`
+  - Saved conversations: `saved/<conversation_name>.json`
+- **Auto-save**: Conversations saved automatically when starting new chat
+- **AI-Generated Names**: Conversations titled based on first user message
 
 ## Configuration Options
 
