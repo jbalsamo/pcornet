@@ -436,7 +436,7 @@ def run_streamlit_mode():
         return
     
     st.set_page_config(
-        page_title="Azure OpenAI Chat Agent",
+        page_title="PCORNET Concept Set Tool",
         page_icon="🤖",
         layout="wide"
     )
