@@ -1,5 +1,13 @@
 """
-Security module for input validation and rate limiting.
+Provides security-related utilities for input validation and rate limiting.
+
+This module contains the `InputValidator` class for sanitizing and validating
+user input to prevent common security risks like XSS, and the `RateLimiter`
+class to protect the application from abuse by limiting the number of requests
+from a single session within a given time window.
+
+Custom exceptions `InputValidationException` and `RateLimitException` are also
+defined for handling specific error conditions.
 """
 import re
 import time
@@ -11,21 +19,29 @@ import logging
 logger = logging.getLogger(__name__)
 
 class InputValidationException(Exception):
-    """Exception raised when input validation fails."""
+    """Exception raised for errors during input validation."""
     pass
 
 class RateLimitException(Exception):
-    """Exception raised when rate limit is exceeded."""
+    """Exception raised when a user exceeds the defined rate limit."""
     pass
 
 class InputValidator:
-    """Validates and sanitizes user input."""
+    """
+    A class for validating and sanitizing user-provided input strings.
+
+    This validator checks for common security issues such as excessive length,
+    empty input, dangerous patterns (e.g., script tags), and an unusual ratio
+    of special characters.
+    """
     
     def __init__(self, max_length: int = 10000):
-        """Initialize input validator.
-        
+        """
+        Initializes the InputValidator.
+
         Args:
-            max_length: Maximum allowed input length
+            max_length (int): The maximum allowed length for an input string.
+                              Defaults to 10000.
         """
         self.max_length = max_length
         
@@ -41,13 +57,15 @@ class InputValidator:
         logger.info(f"InputValidator initialized with max_length={max_length}")
     
     def validate_input(self, user_input: str) -> Dict[str, Any]:
-        """Validate user input.
-        
+        """
+        Validates a user input string against a set of security rules.
+
         Args:
-            user_input: The user's input to validate
-            
+            user_input (str): The string to validate.
+
         Returns:
-            Dictionary with validation results
+            Dict[str, Any]: A dictionary containing a 'valid' boolean and an
+                            'error' message if validation fails.
         """
         # Check if input is empty
         if not user_input or not user_input.strip():
@@ -88,13 +106,17 @@ class InputValidator:
         }
     
     def sanitize_input(self, user_input: str) -> str:
-        """Sanitize user input by removing potentially harmful content.
-        
+        """
+        Sanitizes a user input string by removing potentially harmful content.
+
+        This method removes HTML-like tags, null bytes, and normalizes
+        whitespace to produce a safer version of the input string.
+
         Args:
-            user_input: The user's input to sanitize
-            
+            user_input (str): The string to sanitize.
+
         Returns:
-            Sanitized input string
+            str: The sanitized string.
         """
         # Remove any HTML/script tags
         sanitized = re.sub(r'<[^>]*>', '', user_input)
@@ -108,14 +130,23 @@ class InputValidator:
         return sanitized
 
 class RateLimiter:
-    """Rate limiter to prevent abuse."""
+    """
+    A simple in-memory rate limiter based on a sliding time window.
+
+    This class tracks the timestamps of requests for different session IDs
+    to enforce a limit on the number of calls allowed within a specified
+    time period.
+    """
     
     def __init__(self, max_calls: int = 10, time_window: int = 60):
-        """Initialize rate limiter.
-        
+        """
+        Initializes the RateLimiter.
+
         Args:
-            max_calls: Maximum number of calls allowed in the time window
-            time_window: Time window in seconds
+            max_calls (int): The maximum number of calls allowed within the
+                             time window. Defaults to 10.
+            time_window (int): The duration of the time window in seconds.
+                               Defaults to 60.
         """
         self.max_calls = max_calls
         self.time_window = time_window
@@ -126,13 +157,18 @@ class RateLimiter:
         logger.info(f"RateLimiter initialized: {max_calls} calls per {time_window} seconds")
     
     def check_rate_limit(self, session_id: str = "default") -> Dict[str, Any]:
-        """Check if a request should be allowed based on rate limits.
-        
+        """
+        Checks if a request from a given session is within the rate limit.
+
+        If the request is allowed, it is recorded. If it is denied, information
+        about when to retry is provided.
+
         Args:
-            session_id: Identifier for the session/user
-            
+            session_id (str): A unique identifier for the user or session.
+
         Returns:
-            Dictionary with rate limit status
+            Dict[str, Any]: A dictionary indicating if the request is 'allowed',
+                            and if not, a 'retry_after' value in seconds.
         """
         current_time = time.time()
         
@@ -168,23 +204,26 @@ class RateLimiter:
         }
     
     def reset_session(self, session_id: str = "default") -> None:
-        """Reset rate limit for a session.
-        
+        """
+        Resets the rate limit count for a specific session.
+
         Args:
-            session_id: Identifier for the session to reset
+            session_id (str): The identifier for the session to reset.
         """
         if session_id in self.requests:
             del self.requests[session_id]
             logger.info(f"Rate limit reset for session {session_id}")
     
     def get_stats(self, session_id: str = "default") -> Dict[str, Any]:
-        """Get rate limit statistics for a session.
-        
+        """
+        Retrieves the current rate limit statistics for a session.
+
         Args:
-            session_id: Identifier for the session
-            
+            session_id (str): The identifier for the session.
+
         Returns:
-            Dictionary with rate limit stats
+            Dict[str, Any]: A dictionary with details about the session's
+                            current request count and remaining allowance.
         """
         request_times = self.requests.get(session_id, deque())
         current_time = time.time()

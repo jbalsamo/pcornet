@@ -43,15 +43,15 @@ def _mock_sdk_clients(monkeypatch):
     monkeypatch.setattr("modules.search_tool.OpenAIClient", FakeOpenAIClient)
     monkeypatch.setattr("modules.search_tool.SearchClient", FakeSearchClient)
     monkeypatch.setattr("modules.search_tool.AzureKeyCredential", lambda key: key)
-    # Provide a simple Vector factory if SDK is not installed
-    monkeypatch.setattr("modules.search_tool.Vector", lambda value, fields, k: {"value": value, "fields": fields, "k": k})
+    # Provide a simple VectorizedQuery factory if SDK is not installed
+    monkeypatch.setattr("modules.search_tool.VectorizedQuery", lambda vector, fields, k_nearest_neighbors: {"vector": vector, "fields": fields, "k_nearest_neighbors": k_nearest_neighbors})
 
 
 def test_search_hybrid_returns_hits(mock_azure_openai_config, monkeypatch):
     """Test that Search.run returns hits for the pcornet_icd_index using hybrid search."""
     # Set search service env vars (mock values)
-    os.environ["AZURE_SEARCH_ENDPOINT"] = "https://test-search.search.windows.net"
-    os.environ["AZURE_SEARCH_API_KEY"] = "test-search-key"
+    os.environ["AZURE_AI_SEARCH_ENDPOINT"] = "https://test-search.search.windows.net"
+    os.environ["AZURE_AI_SEARCH_API_KEY"] = "test-search-key"
     os.environ["AZURE_SEARCH_API_VERSION"] = "2023-07-01-Preview"
     os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"] = "embedding-deploy"
 

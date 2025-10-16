@@ -1,5 +1,11 @@
 """
-Conversation History Manager - Manages shared chat history across agents.
+Manages the conversation history for the chat application.
+
+This module provides the `ConversationHistory` class, which is responsible for
+storing, managing, and persisting chat messages. It supports adding messages from
+different roles (user, assistant, system), maintaining a rolling window of recent
+messages, and serializing the history to and from a JSON file. The `ChatMessage`
+dataclass defines the structure for individual messages.
 """
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
@@ -12,7 +18,13 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ChatMessage:
-    """Represents a single chat message in the conversation."""
+    """
+    A structured representation of a single message in a conversation.
+
+    This dataclass holds the content of a message, its role (e.g., 'user',
+    'assistant'), a timestamp, and optional metadata about the agent that
+    generated it.
+    """
     role: str  # 'user', 'assistant', 'system'
     content: str
     timestamp: datetime
@@ -20,14 +32,25 @@ class ChatMessage:
     metadata: Optional[Dict[str, Any]] = None
 
 class ConversationHistory:
-    """Manages conversation history with a rolling window of messages."""
+    """
+    Manages a list of chat messages, providing functionality for history
+    retention, formatting, and persistence.
+
+    This class acts as a stateful manager for a conversation. It keeps messages
+    in a list, enforces a maximum history size, and offers methods to format the
+    history for different consumers (e.g., LLMs, LangChain) and to save/load
+    the history to a file.
+    """
     
     def __init__(self, max_messages: int = 20, storage_file: str = "data/conversation_history.json"):
-        """Initialize conversation history manager.
-        
+        """
+        Initializes the ConversationHistory manager.
+
         Args:
-            max_messages: Maximum number of messages to keep in history
-            storage_file: Path to file for persisting conversation history
+            max_messages (int): The maximum number of messages to keep in the
+                                rolling history window.
+            storage_file (str): The path to the JSON file used for persisting
+                                the conversation history.
         """
         self.max_messages = max_messages
         self.storage_file = storage_file
@@ -39,7 +62,12 @@ class ConversationHistory:
         logger.info(f"ConversationHistory initialized with max_messages={max_messages}, storage_file={storage_file}")
     
     def add_user_message(self, content: str) -> None:
-        """Add a user message to the conversation history."""
+        """
+        Adds a message from the user to the history.
+
+        Args:
+            content (str): The text content of the user's message.
+        """
         message = ChatMessage(
             role="user",
             content=content,
@@ -49,12 +77,15 @@ class ConversationHistory:
         logger.debug(f"Added user message: {content[:50]}...")
     
     def add_assistant_message(self, content: str, agent_type: str = "master", metadata: Optional[Dict[str, Any]] = None) -> None:
-        """Add an assistant message to the conversation history.
-        
+        """
+        Adds a message from the assistant (an agent) to the history.
+
         Args:
-            content: The assistant's response
-            agent_type: Which agent generated this response
-            metadata: Additional metadata about the response
+            content (str): The text content of the assistant's response.
+            agent_type (str): The identifier of the agent that generated the
+                              response (e.g., 'chat', 'icd').
+            metadata (dict, optional): Any additional metadata to store with
+                                       the message.
         """
         message = ChatMessage(
             role="assistant",
@@ -67,7 +98,15 @@ class ConversationHistory:
         logger.debug(f"Added assistant message from {agent_type}: {content[:50]}...")
     
     def add_system_message(self, content: str) -> None:
-        """Add a system message to the conversation history."""
+        """
+        Adds a system-level message to the history.
+
+        System messages are typically used to provide instructions or context to
+        the language model.
+
+        Args:
+            content (str): The content of the system message.
+        """
         message = ChatMessage(
             role="system",
             content=content,
@@ -77,7 +116,13 @@ class ConversationHistory:
         logger.debug(f"Added system message: {content[:50]}...")
     
     def _add_message(self, message: ChatMessage) -> None:
-        """Add a message and maintain the rolling window."""
+        """
+        A private helper to add a message and trim the history if it exceeds
+        the maximum size.
+
+        Args:
+            message (ChatMessage): The message object to add.
+        """
         self.messages.append(message)
         
         # Maintain rolling window - keep only the last max_messages
@@ -87,13 +132,19 @@ class ConversationHistory:
             logger.debug(f"Trimmed {removed_count} old messages from history")
     
     def get_messages_for_llm(self, include_system: bool = True) -> List[Dict[str, str]]:
-        """Get messages formatted for LLM consumption.
-        
+        """
+        Formats the message history for consumption by a generic LLM API.
+
+        This method converts the list of `ChatMessage` objects into a list of
+        dictionaries, each with 'role' and 'content' keys, which is a common
+        format for chat-based language models.
+
         Args:
-            include_system: Whether to include system messages
-            
+            include_system (bool): If True, system messages are included in the
+                                   output.
+
         Returns:
-            List of message dictionaries with 'role' and 'content' keys
+            List[Dict[str, str]]: A list of message dictionaries.
         """
         formatted_messages = []
         
@@ -115,7 +166,15 @@ class ConversationHistory:
         return formatted_messages
     
     def get_langchain_messages(self):
-        """Get messages formatted for LangChain consumption."""
+        """
+        Converts the message history into a list of LangChain message objects.
+
+        This method is useful for integrating with LangChain components that
+        expect a list of `HumanMessage`, `AIMessage`, or `SystemMessage` objects.
+
+        Returns:
+            list: A list of LangChain message objects.
+        """
         from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
         
         langchain_messages = []
@@ -137,13 +196,15 @@ class ConversationHistory:
         return langchain_messages
     
     def get_recent_context(self, num_messages: int = 10) -> str:
-        """Get recent conversation context as a formatted string.
-        
+        """
+        Generates a human-readable string of the most recent conversation.
+
         Args:
-            num_messages: Number of recent messages to include
-            
+            num_messages (int): The number of recent messages to include in the
+                                formatted string.
+
         Returns:
-            Formatted conversation context
+            str: A formatted string representing the recent conversation history.
         """
         recent_messages = self.messages[-num_messages:] if num_messages > 0 else self.messages
         
@@ -164,13 +225,23 @@ class ConversationHistory:
         return "\n".join(context_lines)
     
     def clear_history(self) -> None:
-        """Clear all conversation history."""
+        """
+        Removes all messages from the in-memory history.
+        """
         message_count = len(self.messages)
         self.messages.clear()
         logger.info(f"Cleared {message_count} messages from conversation history")
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get statistics about the conversation history."""
+        """
+        Computes and returns statistics about the current conversation history.
+
+        The statistics include total message counts, counts by role, agent usage,
+        and timestamps of the oldest and newest messages.
+
+        Returns:
+            Dict[str, Any]: A dictionary of conversation statistics.
+        """
         if not self.messages:
             return {
                 "total_messages": 0,
@@ -201,18 +272,26 @@ class ConversationHistory:
         return stats
     
     def __len__(self) -> int:
-        """Return the number of messages in history."""
+        """
+        Returns the current number of messages in the history.
+        """
         return len(self.messages)
     
     def __str__(self) -> str:
-        """String representation of the conversation history."""
+        """
+        Returns a string representation of the ConversationHistory object.
+        """
         return f"ConversationHistory({len(self.messages)} messages, max={self.max_messages})"
     
     def save_to_disk(self) -> bool:
-        """Save conversation history to disk.
-        
+        """
+        Serializes the current conversation history to a JSON file.
+
+        The data is saved to the `storage_file` path specified during
+        initialization.
+
         Returns:
-            True if save was successful, False otherwise
+            bool: True if the save operation was successful, False otherwise.
         """
         try:
             # Convert messages to serializable format
@@ -245,10 +324,14 @@ class ConversationHistory:
             return False
     
     def load_from_disk(self) -> bool:
-        """Load conversation history from disk.
-        
+        """
+        Loads and deserializes conversation history from a JSON file.
+
+        This method replaces the in-memory history with the content of the
+        `storage_file`.
+
         Returns:
-            True if load was successful, False otherwise
+            bool: True if the load operation was successful, False otherwise.
         """
         try:
             if not os.path.exists(self.storage_file):
@@ -285,10 +368,12 @@ class ConversationHistory:
             return False
     
     def delete_saved_history(self) -> bool:
-        """Delete the saved conversation history file.
-        
+        """
+        Deletes the persisted conversation history file from the disk.
+
         Returns:
-            True if deletion was successful, False otherwise
+            bool: True if the file was deleted or did not exist, False if an
+                  error occurred during deletion.
         """
         try:
             if os.path.exists(self.storage_file):
@@ -304,13 +389,18 @@ class ConversationHistory:
             return False
     
     def save_to_custom_file(self, filename: str) -> bool:
-        """Save conversation history to a custom file in the saved folder.
-        
+        """
+        Saves the conversation history to a custom-named file in the 'saved/'
+        directory.
+
+        This is useful for creating snapshots or named exports of conversations.
+
         Args:
-            filename: Name of the file (without path, will be saved in saved/)
-            
+            filename (str): The name for the output file. A '.json' extension
+                            will be added if not present.
+
         Returns:
-            True if save was successful, False otherwise
+            bool: True if the save operation was successful, False otherwise.
         """
         try:
             # Ensure saved directory exists at project root

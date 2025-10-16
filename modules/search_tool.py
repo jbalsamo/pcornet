@@ -1,63 +1,67 @@
-"""Azure Cognitive Search hybrid search helper.
+"""Provides a helper class for performing hybrid searches on Azure AI Search.
 
-This module provides a Search class that performs a hybrid search (vector + semantic +
-keyword) against an Azure Cognitive Search index. It reads necessary configuration from
-environment variables (via `modules/config.py`) and will call Azure OpenAI to produce an
-embedding for the query if an embedding vector is not supplied.
+This module defines the `Search` class, which encapsulates the logic for
+executing a hybrid search (vector + semantic + keyword) against a specified
+Azure AI Search index. It handles configuration, embedding generation via
+Azure OpenAI, and the search execution itself, returning a structured list of
+results.
 
-Environment variables used (set in .env):
-- AZURE_SEARCH_ENDPOINT: your search service endpoint (required)
-- AZURE_SEARCH_API_KEY: admin or query API key for the search service (required)
-- AZURE_SEARCH_API_VERSION: API version for search (optional, default: 2023-07-01-Preview)
-- AZURE_SEARCH_VECTOR_FIELD: name of the vector field in your index (optional, default: 'vector')
-- AZURE_SEARCH_SEARCH_FIELDS: comma-separated search fields for keyword search (optional)
-- AZURE_OPENAI_EMBEDDING_DEPLOYMENT: deployment name for embeddings (optional)
+Key Features:
+- Reads configuration from environment variables (e.g., endpoints, keys).
+- Automatically generates query embeddings if not provided.
+- Supports semantic ranking and keyword search fields.
+- Uses the `azure-search-documents` SDK for executing the search.
 
-Usage:
-    from modules.search_tool import Search
-    s = Search(index=AZURE_SEARCH_INDEX, query="find documents about X")
-    results = s.run()
-
-The returned value is a list of hits with `score`, `document`, and optional `highlights`.
+Exceptions:
+- `SearchError`: Raised for configuration issues or runtime search failures.
 """
 
 from __future__ import annotations
 
 import os
 import json
+
 import logging
 from typing import Any, Dict, List, Optional
 
-from .config import config as openai_config
+from .config import get_config
+
+from .config import get_config
 
 logger = logging.getLogger(__name__)
 
 try:
     from azure.core.credentials import AzureKeyCredential
     from azure.search.documents import SearchClient
-    from azure.search.documents.models import Vector
-    from azure.ai.openai import OpenAIClient
+    from azure.search.documents.models import VectorizedQuery
+    from openai import AzureOpenAI
 except Exception as e:  # pragma: no cover - import errors are surfaced at runtime
     # Defer the import error to runtime usage to keep module import time flexible in tests
     AzureKeyCredential = None
     SearchClient = None
-    Vector = None
-    OpenAIClient = None
+    VectorizedQuery = None
+    AzureOpenAI = None
 
 
 class SearchError(Exception):
+    """Custom exception for errors raised by the Search class."""
     pass
 
 
 class Search:
-    """Perform a hybrid search (vector + semantic + keyword) on an Azure Cognitive Search index.
+    """
+    Performs a hybrid search on an Azure AI Search index.
 
-    Inputs/outputs (contract):
-    - input: index (str), query (str)
-    - optional inputs: top (int), embedding (List[float])
-    - output: List[Dict] where each dict contains at least `score` and `document` keys.
+    This class orchestrates a complex search query involving vector similarity,
+    semantic reranking, and traditional keyword matching. It can either take a
+    pre-computed embedding vector or generate one on-the-fly for the query.
 
-    Error modes: raises SearchError for configuration or HTTP errors.
+    Attributes:
+        index (str): The name of the search index to query.
+        query (str): The user's search query.
+        top (int): The number of results to return.
+        semantic_config (str, optional): The name of the semantic configuration
+                                         to use.
     """
 
     def __init__(
@@ -71,15 +75,37 @@ class Search:
         search_fields: Optional[List[str]] = None,
         vector_field: Optional[str] = None,
     ) -> None:
+        """
+        Initializes the Search object with query parameters and configuration.
+
+        Args:
+            index (str): The name of the target search index.
+            query (str): The search query string.
+            top (int): The maximum number of results to retrieve. Defaults to 20.
+            embedding (List[float], optional): A pre-computed embedding vector
+                for the query. If None, one will be generated.
+            semantic_config (str, optional): The name of the semantic
+                configuration to apply.
+            search_fields (List[str], optional): A list of field names to use
+                for keyword search. Overrides environment variable.
+            vector_field (str, optional): The name of the vector field in the
+                index. Overrides environment variable.
+        """
         self.index = index
         self.query = query
         self.top = int(top)
         self._embedding = embedding
         self.semantic_config = semantic_config
 
-        # Load Azure Cognitive Search config from environment
-        self.search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
-        self.search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
+        # Load Azure Cognitive Search config from configuration system
+        config = get_config()
+        self.search_endpoint = config.azure_ai_search_endpoint
+        self.search_api_key = config.azure_ai_search_api_key
+
+        # Log the loaded values for debugging
+        logger.info(f"Loaded Azure AI Search Endpoint: {self.search_endpoint}")
+        logger.info(f"Loaded Azure AI Search API Key: {'[REDACTED]' if self.search_api_key else 'None'}")
+
         self.search_api_version = os.getenv("AZURE_SEARCH_API_VERSION", "2023-07-01-Preview")
         self.vector_field = vector_field or os.getenv("AZURE_SEARCH_VECTOR_FIELD", "vector")
 
@@ -93,22 +119,40 @@ class Search:
             self.search_fields = None
 
         # OpenAI embedding deployment (optional) - will use Azure OpenAI config if set
-        self.embedding_deployment = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+        self.embedding_deployment = config.azure_openai_embedding_deployment
 
         self._validate_config()
 
     def _validate_config(self) -> None:
+        """
+        Validates that required search configuration is present.
+
+        Raises:
+            SearchError: If the search endpoint or API key is not configured in
+                         the environment.
+        """
         if not self.search_endpoint:
-            raise SearchError("AZURE_SEARCH_ENDPOINT is required in environment or .env")
+            raise SearchError("AZURE_AI_SEARCH_ENDPOINT is required in environment or .env")
         if not self.search_api_key:
-            raise SearchError("AZURE_SEARCH_API_KEY is required in environment or .env")
+            raise SearchError("AZURE_AI_SEARCH_API_KEY is required in environment or .env")
 
     def _get_embedding(self, text: str) -> List[float]:
-        """Obtain embedding vector for `text` using Azure OpenAI embeddings endpoint.
+        """
+        Generates an embedding vector for the given text using Azure OpenAI.
 
-        Requires `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` to be set in env, and `modules/config.config`
-        to provide Azure OpenAI endpoint and api key. Raises SearchError if embeddings cannot be
-        produced.
+        This method requires the `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` environment
+        variable to be set. It uses the `azure-ai-openai` SDK to communicate
+        with the embeddings endpoint.
+
+        Args:
+            text (str): The input text to embed.
+
+        Returns:
+            List[float]: The resulting embedding vector.
+
+        Raises:
+            SearchError: If the embedding deployment is not configured or if
+                         the SDK call fails.
         """
         deployment = self.embedding_deployment or os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
         if not deployment:
@@ -117,19 +161,24 @@ class Search:
                 "or provide an `embedding` directly to Search()."
             )
 
-        # Use openai_config for endpoint and key
+        # Use get_config() for endpoint and key
+        openai_config = get_config()
         aoai_endpoint = getattr(openai_config, "endpoint", None)
         aoai_key = getattr(openai_config, "api_key", None)
 
         if not aoai_endpoint or not aoai_key:
             raise SearchError("Azure OpenAI endpoint and api key must be present to create embeddings")
 
-        if OpenAIClient is None:
-            raise SearchError("azure-ai-openai SDK is not installed; cannot create embeddings")
+        if AzureOpenAI is None:
+            raise SearchError("openai SDK is not installed; cannot create embeddings")
 
         try:
-            client = OpenAIClient(aoai_endpoint, credential=aoai_key)
-            resp = client.get_embeddings(deployment_id=deployment, input=text)
+            client = AzureOpenAI(
+                api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+                azure_endpoint=aoai_endpoint,
+                api_key=aoai_key,
+            )
+            resp = client.embeddings.create(model=deployment, input=text)
             embedding = resp.data[0].embedding
             return embedding
         except Exception as e:
@@ -137,7 +186,19 @@ class Search:
             raise SearchError(f"Failed to create embedding via SDK: {e}") from e
 
     def _build_search_body(self, embedding: List[float]) -> Dict[str, Any]:
-        """Construct the request body for the hybrid search call."""
+        """
+        Constructs the request body for the search REST API call.
+
+        Note: This method is currently not used as the implementation favors the
+        `azure-search-documents` SDK over raw REST calls.
+
+        Args:
+            embedding (List[float]): The query embedding vector.
+
+        Returns:
+            Dict[str, Any]: A dictionary representing the JSON body for the
+                            search request.
+        """
         body: Dict[str, Any] = {}
 
         # Vector (k nearest neighbors)
@@ -160,17 +221,29 @@ class Search:
         return body
 
     def run(self) -> List[Dict[str, Any]]:
-        """Execute the hybrid search and return a list of hits.
+        """
+        Executes the hybrid search against the Azure AI Search index.
 
-        Each hit is a dict with keys: `score`, `document` (dict), and optionally `highlights`.
+        This is the main method of the class. It orchestrates the search by:
+        1. Preparing the query vector (if applicable).
+        2. Initializing the `SearchClient`.
+        3. Executing the search using the SDK's `search` method.
+        4. Formatting the raw results into a standardized list of dictionaries.
+
+        Returns:
+            List[Dict[str, Any]]: A list of search results. Each result is a
+            dictionary containing a 'score', the 'document' itself, and
+            optional 'highlights'.
+
+        Raises:
+            SearchError: If the `azure-search-documents` SDK is not installed
+                         or if the search call fails for any reason.
         """
         embedding = self._embedding
 
-    # Skip embedding generation if your index already contains vectors
-    # and we only need keyword + semantic search
-    if embedding is None:
-        logger.info("Skipping embedding generation (using built-in semantic + keyword search only)")
-        embedding = []  # Empty list signals no vector needed
+        # If no embedding is provided, generate one.
+        if embedding is None and self.query:
+            embedding = self._get_embedding(self.query)
 
         if SearchClient is None or AzureKeyCredential is None:
             raise SearchError("azure-search-documents SDK is not installed; cannot run search")
@@ -179,8 +252,8 @@ class Search:
             credential = AzureKeyCredential(self.search_api_key)
             client = SearchClient(endpoint=self.search_endpoint, index_name=self.index, credential=credential)
 
-            # Use vector search via 'vector' parameter if supported
-            vect = Vector(value=embedding, fields=self.vector_field, k=self.top)
+            # Prepare vector for search
+            vect = VectorizedQuery(vector=embedding, fields=self.vector_field, k_nearest_neighbors=self.top) if embedding else None
 
             # Build search parameters
             search_text = self.query
@@ -191,27 +264,26 @@ class Search:
                 search_kwargs["query_type"] = "semantic"
                 search_kwargs["semantic_configuration_name"] = self.semantic_config
 
-            results = client.search(search_text, vector=vect, **search_kwargs)
+            results = client.search(search_text, vector_queries=[vect] if vect else None, **search_kwargs)
 
             hits: List[Dict[str, Any]] = []
             for r in results:
                 # results items may be dict-like or objects; try dict access first
-                score = None
-                if isinstance(r, dict):
-                    score = r.get("@search.score") or r.get("@search_score") or r.get("score")
-                else:
-                    score = getattr(r, "@search_score", None) or getattr(r, "score", None) or getattr(r, "@search.score", None)
+                score = r.get("@search.score") if isinstance(r, dict) else getattr(r, "@search.score", None)
 
                 # Document content is available via mapping or object interface
                 try:
                     document = dict(r)
-                except Exception:
+                except (TypeError, ValueError):
                     # fallback: try to build dict from attributes
                     document = {k: getattr(r, k) for k in dir(r) if not k.startswith("_")}
+                
                 hit = {"score": score, "document": document}
-                # Highlights may be provided in r['@search.highlights'] depending on SDK
+                
+                # Highlights may be provided in r['@search.highlights']
                 if "@search.highlights" in r:
                     hit["highlights"] = r["@search.highlights"]
+                
                 hits.append(hit)
 
             return hits
