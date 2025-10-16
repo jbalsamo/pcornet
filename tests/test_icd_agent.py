@@ -46,8 +46,12 @@ def test_icd_agent_process(monkeypatch):
     agent = IcdAgent(index="pcornet-icd-index")
     resp = agent.process("What is ICD code I10?")
 
-    assert isinstance(resp, str)
-    assert "MOCK ICD ANSWER" in resp
+    assert isinstance(resp, dict)
+    assert "processed_response" in resp
+    assert "MOCK ICD ANSWER" in resp["processed_response"]
+    # Post-processing should normalize I10 to [I10] and replace [EXTERNAL] with [UNSUPPORTED_CITATION]
+    assert "[I10]" in resp["processed_response"]
+    assert "[UNSUPPORTED_CITATION]" in resp["processed_response"]
 
 
 def test_icd_agent_with_history(monkeypatch):
@@ -88,11 +92,17 @@ def test_heart_disease_concept_set(monkeypatch):
 
     resp = agent.process("Provide the Heart Disease Concept Set")
 
-    # Ensure the response includes expected codes and the citation
-    assert "I20" in resp
-    assert "I21" in resp
-    assert "I50" in resp
-    assert "PCORnet" in resp or "PCORnet Documentation" in resp
+    # Ensure the response is a dictionary with the expected structure
+    assert isinstance(resp, dict)
+    assert "processed_response" in resp
+    assert "data" in resp
+    
+    # Check the processed response contains expected codes and citations
+    processed_response = resp["processed_response"]
+    assert "[I20]" in processed_response  # Citations should be bracketed
+    assert "[I21]" in processed_response
+    assert "[I50]" in processed_response
+    assert "PCORnet" in processed_response or "PCORnet Documentation" in processed_response
 
     # last_retrieved_documents should be populated with the concept set entries
     assert isinstance(agent.last_retrieved_documents, list)
