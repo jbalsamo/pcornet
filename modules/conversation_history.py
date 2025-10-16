@@ -442,3 +442,18 @@ class ConversationHistory:
         except Exception as e:
             logger.error(f"Error saving conversation history to custom file: {e}")
             return False
+    
+    def save(self) -> bool:
+        """
+        Alias for save_to_disk() for backward compatibility.
+        
+        Returns:
+            bool: True if the save operation was successful, False otherwise.
+        """
+        return self.save_to_disk()
+    
+    def clear(self) -> None:
+        """
+        Alias for clear_history() for backward compatibility.
+        """
+        self.clear_history()

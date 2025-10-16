@@ -64,6 +64,10 @@ class InteractiveSession:
             return self.contexts[self.current_session_id]
         return None
     
+    def get_context(self, session_id: str) -> Optional[InteractiveContext]:
+        """Get a session context by ID."""
+        return self.contexts.get(session_id)
+    
     def is_modification_request(self, query: str) -> bool:
         """
         Detect if the query is requesting to modify the current data set.

@@ -16,20 +16,21 @@ def test_process_valid_json(agent):
     and extract the relevant information.
     """
     # Sample JSON input mimicking the output from IcdAgent
+    # Note: Azure Search uses uppercase field names CODE and STR
     input_data = json.dumps([
         {
             "document": {
-                "code": "E11.9",
-                "label": "Type 2 diabetes mellitus without complications"
+                "CODE": "E11.9",
+                "STR": "Type 2 diabetes mellitus without complications"
             },
-            "@search.score": 0.95
+            "score": 0.95
         },
         {
             "document": {
-                "code": "E10.9",
-                "label": "Type 1 diabetes mellitus without complications"
+                "CODE": "E10.9",
+                "STR": "Type 1 diabetes mellitus without complications"
             },
-            "@search.score": 0.92
+            "score": 0.92
         }
     ])
 
@@ -42,7 +43,6 @@ def test_process_valid_json(agent):
     assert "Type 2 diabetes mellitus without complications" in result
     assert "E10.9" in result
     assert "Type 1 diabetes mellitus without complications" in result
-    assert "search.score" not in result  # Should not include search score
 
 def test_process_invalid_json(agent):
     """
@@ -75,24 +75,24 @@ def test_process_empty_json_array(agent):
 
 def test_process_json_with_missing_keys(agent):
     """
-    Tests robustness against missing 'document', 'code', or 'label' keys.
+    Tests robustness against missing 'document', 'CODE', or 'STR' keys.
     """
     input_data = json.dumps([
         {
             "document": {
-                "code": "E11.9"
-                # Missing 'label'
+                "CODE": "E11.9"
+                # Missing 'STR' (label)
             }
         },
         {
-            # Missing 'document'
-            "code": "E10.9",
-            "label": "Type 1 diabetes"
+            # Missing 'document' - should show as N/A
+            "CODE": "E10.9",
+            "STR": "Type 1 diabetes"
         }
     ])
 
     result = agent.process(input_data)
     assert isinstance(result, str)
     assert "Code: E11.9, Label: N/A" in result
-    # The second entry should be gracefully ignored or handled
-    assert "E10.9" not in result # Or assert it's handled as N/A depending on implementation
+    # The second entry should be gracefully handled with N/A since document is missing
+    assert "Code: N/A, Label: N/A" in result

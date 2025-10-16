@@ -41,13 +41,9 @@ class IcdAgent:
         self.index_name = index
         self.last_retrieved_documents = []
         
-        # Initialize relationship search for SNOMED mappings
-        try:
-            self.relationship_search = modules.relationship_search.RelationshipSearch()
-            logger.info("✅ RelationshipSearch initialized")
-        except Exception as e:
-            logger.warning(f"RelationshipSearch initialization failed: {e}")
-            self.relationship_search = None
+        # RelationshipSearch is instantiated per query (not initialized here)
+        # It will be created dynamically when searching for SNOMED mappings
+        logger.info("✅ IcdAgent initialized (RelationshipSearch will be used per query)")
         
         # Initialize LLM client
         try:
@@ -668,11 +664,12 @@ This concept set covers the primary ICD-10 codes for heart disease conditions as
         modification_type = interactive_session.detect_modification_type(query)
         data_types = interactive_session.extract_data_types(query)
         
-        current_context = interactive_session.get_current_context()
+        # Check if session exists by ID, not by current_session_id
+        current_context = interactive_session.get_context(session_id)
         if not current_context:
             # Start new session if none exists
             interactive_session.start_session(session_id)
-            current_context = interactive_session.get_current_context()
+            current_context = interactive_session.get_context(session_id)
         
         response = ""
         
@@ -730,7 +727,7 @@ This concept set covers the primary ICD-10 codes for heart disease conditions as
             if not results_list:
                 return f"No ICD codes found for '{condition}'. Could you try a different condition or be more specific?"
             
-            # Add the search results to session
+            # Add the search results to session with full document (includes OHDSI field)
             if session_id:
                 # Check if session exists, if not start one
                 if session_id not in interactive_session.contexts:
@@ -740,102 +737,33 @@ This concept set covers the primary ICD-10 codes for heart disease conditions as
                 if current_session:
                     for result in results_list:
                         doc = result.get('document', {})
+                        # Store full document so OHDSI field is available
                         data_item = DataItem(
                             item_type='icd_code',
                             key=doc.get('CODE', ''),
                             value=doc.get('STR', ''),
-                            metadata={'document': doc},
+                            metadata={'full_document': doc},  # Store complete document
                             source_query=condition
                         )
                         interactive_session.add_data_item(session_id, data_item)
             
-            # Now search for SNOMED mappings
-            codes_for_snomed = [result.get('document', {}).get('CODE', '') for result in results_list]
+            # SNOMED mappings are now in OHDSI field - no need for separate search
+            # The chat agent can extract SNOMED codes from the stored OHDSI data
+            logger.info(f"📋 Stored {len(results_list)} ICD codes with OHDSI data in session")
             
-            if self.relationship_search:
-                snomed_mappings = []
-                for code in codes_for_snomed:
-                    mappings = self.relationship_search.search_snomed_mappings(code)
-                    if mappings:
-                        snomed_mappings.extend(mappings)
-                
-                # Create structured data for table display
-                table_data = []
-                formatted_results = []
-                formatted_results.append(f"**Found ICD codes for '{condition}' and their SNOMED mappings:**\n")
-                
-                for result in results_list:
-                    doc = result.get('document', {})
-                    code = doc.get('CODE', '')
-                    desc = doc.get('STR', '')
-                    
-                    # Find SNOMED mappings for this code
-                    code_snomed = [m for m in snomed_mappings if m.get('source_code') == code]
-                    
-                    # Add to table data
-                    if code_snomed:
-                        for mapping in code_snomed[:3]:  # Limit to 3 mappings per code
-                            snomed_code = mapping.get('target_concept_code', 'N/A')
-                            snomed_desc = mapping.get('target_concept_name', 'N/A')
-                            table_data.append({
-                                'ICD Code': code,
-                                'ICD Description': desc,
-                                'SNOMED Code': snomed_code,
-                                'SNOMED Description': snomed_desc
-                            })
-                    else:
-                        table_data.append({
-                            'ICD Code': code,
-                            'ICD Description': desc,
-                            'SNOMED Code': 'No mapping found',
-                            'SNOMED Description': ''
-                        })
-                    
-                    # Add to formatted text response  
-                    formatted_results.append(f"**{code}**: {desc}")
-                    if code_snomed:
-                        formatted_results.append("  *SNOMED mappings:*")
-                        for mapping in code_snomed[:3]:
-                            snomed_code = mapping.get('target_concept_code', 'N/A')
-                            snomed_desc = mapping.get('target_concept_name', 'N/A')
-                            formatted_results.append(f"  • {snomed_code}: {snomed_desc}")
-                    else:
-                        formatted_results.append("  *No SNOMED mappings found*")
-                    formatted_results.append("")
-                
-                # Return structured data that can be used for both table display and text
-                return {
-                    'text_response': "\n".join(formatted_results),
-                    'table_data': table_data,
-                    'search_results': raw_data  # Include original search data
-                }
-            else:
-                # Fallback if no relationship search available
-                table_data = []
-                formatted_results = []
-                formatted_results.append(f"**Found ICD codes for '{condition}':**\n")
-                
-                for result in results_list:
-                    doc = result.get('document', {})
-                    code = doc.get('CODE', '')
-                    desc = doc.get('STR', '')
-                    formatted_results.append(f"**{code}**: {desc}")
-                    
-                    # Add to table data without SNOMED mappings
-                    table_data.append({
-                        'ICD Code': code,
-                        'ICD Description': desc,
-                        'SNOMED Code': 'Service unavailable',
-                        'SNOMED Description': ''
-                    })
-                
-                formatted_results.append("\n*Note: SNOMED mapping service not available. ICD codes have been added to your session.*")
-                
-                return {
-                    'text_response': "\n".join(formatted_results),
-                    'table_data': table_data,
-                    'search_results': raw_data
-                }
+            # Return simple response - SNOMED data is in session for chat agent to use
+            formatted_results = []
+            formatted_results.append(f"**Found {len(results_list)} ICD codes for '{condition}':**\n")
+            
+            for result in results_list:
+                doc = result.get('document', {})
+                code = doc.get('CODE', '')
+                desc = doc.get('STR', '')
+                formatted_results.append(f"**{code}**: {desc}")
+            
+            formatted_results.append("\n💡 *The data includes OHDSI mappings (with SNOMED codes). Try asking me to 'show SNOMED codes' or 'format as table with SNOMED'.*")
+            
+            return "\n".join(formatted_results)
                 
         except Exception as e:
             return f"I encountered an error while searching for '{condition}' and SNOMED mappings: {str(e)}"
@@ -1066,8 +994,8 @@ Try any of these commands to modify your current data!
             return
         
         try:
-            # Ensure session exists
-            if not interactive_session.get_current_context():
+            # Ensure session exists by checking with session_id
+            if not interactive_session.get_context(session_id):
                 interactive_session.start_session(session_id)
             
             raw_data = json.loads(result["data"])
@@ -1078,15 +1006,23 @@ Try any of these commands to modify your current data!
                 description = document.get("STR", "")
                 
                 if code and description:
-                    # Add ICD code to session
+                    # Store ALL fields from the document in metadata
+                    # This includes OHDSI, SAB, and any other available fields
+                    metadata = {
+                        "score": item.get("score", 0),
+                        "document_id": document.get("id", code),
+                        "full_document": document  # Store complete document for access to all fields
+                    }
+                    
+                    # Log what fields are available
+                    logger.debug(f"📋 Storing document with fields: {list(document.keys())}")
+                    
+                    # Add ICD code to session with full document
                     data_item = DataItem(
                         item_type="icd_code",
                         key=code,
                         value=description,
-                        metadata={
-                            "score": item.get("score", 0),
-                            "document_id": document.get("id", code)
-                        },
+                        metadata=metadata,
                         source_query=query
                     )
                     interactive_session.add_data_item(session_id, data_item)

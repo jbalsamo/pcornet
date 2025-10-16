@@ -25,15 +25,15 @@ class ConceptSetExtractorAgent:
 
     def process(self, context_data: str) -> str:
         """
-        Processes a raw context string, extracts ICD data, and formats it.
+        Processes a raw context string, extracts ICD data with ALL fields, and formats it.
 
         Args:
             context_data (str): A string containing the raw data, expected to be
                                 a JSON representation of a list of dictionaries.
 
         Returns:
-            str: A formatted string containing the extracted concept set, or an
-                 error message if processing fails.
+            str: A formatted string containing the extracted concept set with all available
+                 fields (CODE, STR, OHDSI, SAB, etc.), or an error message if processing fails.
         """
         try:
             # The context data is a string representation of a list of dicts
@@ -48,7 +48,27 @@ class ConceptSetExtractorAgent:
                 code = document.get("CODE", "N/A")
                 label = document.get("STR", "N/A")
                 score = item.get("score", 0.0)
-                formatted_lines.append(f"Code: {code}, Label: {label}, Score: {score:.4f}")
+                
+                # Log available fields for debugging
+                available_fields = list(document.keys())
+                logger.debug(f"📋 Extracting {code}: fields available = {available_fields}")
+                
+                # Build line with code, label, and score
+                line = f"Code: {code}, Label: {label}, Score: {score:.4f}"
+                
+                # Add ALL additional fields from document (OHDSI, SAB, etc.)
+                additional_fields = []
+                for field, value in document.items():
+                    if field not in ["CODE", "STR", "id"] and value:
+                        # Format field name nicely
+                        additional_fields.append(f"{field}: {value}")
+                        logger.debug(f"📋 Added field {field} for {code}")
+                
+                if additional_fields:
+                    line += ", " + ", ".join(additional_fields)
+                    logger.info(f"📋 Extracted {code} with {len(additional_fields)} additional fields (including OHDSI if present)")
+                
+                formatted_lines.append(line)
 
             return "\n".join(formatted_lines)
 

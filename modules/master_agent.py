@@ -62,6 +62,15 @@ class MasterAgent:
             logger.exception("Failed to initialize agents")
             raise e
 
+        # Initialize conversation history
+        try:
+            from modules.conversation_history import ConversationHistory
+            self.conversation_history = ConversationHistory()
+            logger.info("✅ Conversation history initialized")
+        except Exception as e:
+            logger.exception("Failed to initialize conversation history")
+            raise e
+
         # Quick validation of Azure OpenAI deployment
         try:
             self.client = AzureOpenAI(
@@ -120,42 +129,150 @@ class MasterAgent:
     def chat(self, query: str, agent_type: str = "auto", session_id: str = "default"):
         """
         Processes a chat query by routing it to the specified agent or workflow.
-        Enhanced with interactive session support.
+        Enhanced with interactive session support and conversation history tracking.
         """
+        # Add user message to conversation history
+        self.conversation_history.add_user_message(query)
+        
         # Auto-detect agent type if not specified
         if agent_type == "auto":
             agent_type = self._classify_agent_type(query)
+            logger.info(f"📋 Agent classification: '{query}' → agent_type='{agent_type}'")
         
-        # Check if this is an interactive modification request
-        if interactive_session.is_modification_request(query):
-            logger.info(f"Interactive modification request detected: '{query}'")
-            if agent_type == "icd" or self._has_active_session(session_id):
-                return self.icd_agent.process_interactive(query, session_id)
-            else:
-                return "No active session found. Please start with a search query first, then I can help you modify the results."
+        # Check if there's an active session with previous ICD data
+        has_session_data = self._has_active_session(session_id)
+        logger.info(f"📋 Session check: has_session_data={has_session_data}, session_id={session_id}")
+        
+        # For follow-up questions, use the chat agent with RAG context
+        # This allows format changes like "show as table" to work with stored data
+        if has_session_data and len(self.conversation_history.messages) > 0:
+            # Check if query is explicitly requesting a NEW search
+            is_explicit_new_search = (
+                # Must have both search intent AND medical term
+                any(keyword in query.lower() for keyword in [
+                    "search for", "find", "look up", "get me", "retrieve"
+                ]) and 
+                any(keyword in query.lower() for keyword in [
+                    "new", "different", "other", "more"
+                ])
+            ) or (
+                # Or explicitly asking about a new condition
+                any(phrase in query.lower() for phrase in [
+                    "what is the code for", "find code for", "search for code"
+                ])
+            )
+            
+            # If it's not explicitly a new search, treat it as a follow-up
+            is_concept_set = self._is_concept_set_query(query)
+            logger.info(f"📋 Checking follow-up: is_explicit_new_search={is_explicit_new_search}, is_concept_set={is_concept_set}")
+            
+            if not is_explicit_new_search and not is_concept_set:
+                logger.info(f"📋 ✅ Follow-up confirmed: Using chat agent with RAG context from session")
+                # Get RAG context from session
+                context_str = self._get_session_context_string(session_id)
+                if context_str:
+                    context_lines = context_str.count('\n') + 1
+                    num_codes = len(interactive_session.get_context(session_id).current_data)
+                    logger.info(f"📋 State: Retrieved {num_codes} codes ({context_lines} lines) from session")
+                    
+                    # Use chat agent with RAG context in system message
+                    response = self.chat_agent.process(query, context=context_str)
+                    logger.info(f"📋 State: Response generated ({len(response)} chars) using session context with {num_codes} codes")
+                    self.conversation_history.add_assistant_message(response, agent_type="chat")
+                    return response
+                else:
+                    logger.warning(f"📋 Follow-up detected but no context available in session {session_id}")
+                    # Continue to standard routing but it will still check for context
         
         # Initialize state
         state = MasterAgentState(user_input=query, agent_type=agent_type, context="", response="", error="")
+        logger.info(f"📋 State initialized: agent_type='{agent_type}', user_input='{query[:50]}...'")
 
         # Step 1: Classify user intent
         if self._is_concept_set_query(query):
             logger.info("Concept set query detected. Starting concept set workflow.")
-            return self._concept_set_workflow(state)
+            response = self._concept_set_workflow(state)
+            self.conversation_history.add_assistant_message(response, agent_type="concept_set")
+            return response
 
         # Enhanced routing with session support
-        logger.info(f"Standard query detected. Routing to '{agent_type}' agent.")
+        logger.info(f"📋 Routing to '{agent_type}' agent (standard query path - NOT follow-up)")
         if agent_type == "chat":
-            return self.chat_agent.process(query)
+            # Include session context if available (RAG data from previous searches)
+            context_str = self._get_session_context_string(session_id) if has_session_data else None
+            if context_str:
+                session_ctx = interactive_session.get_context(session_id)
+                num_codes = len(session_ctx.current_data) if session_ctx else 0
+                context_lines = context_str.count('\n') + 1
+                logger.info(f"📋 State: Passing {num_codes} codes ({context_lines} lines) as context to chat agent")
+            else:
+                logger.info(f"📋 State: ⚠️ No session context available, using chat agent without RAG context")
+            response = self.chat_agent.process(query, context=context_str)
+            logger.info(f"📋 State: Chat response generated ({len(response)} chars) {'WITH' if context_str else 'WITHOUT'} context")
+            self.conversation_history.add_assistant_message(response, agent_type="chat")
+            return response
         elif agent_type == "icd":
             # Use interactive processing for ICD queries
-            return self._chat_icd_interactive(query, session_id)
+            logger.info(f"📋 State: Routing to ICD agent with interactive session support")
+            response = self._chat_icd_interactive(query, session_id)
+            logger.info(f"📋 State: ICD response generated ({len(response)} chars), stored in session")
+            self.conversation_history.add_assistant_message(response, agent_type="icd")
+            return response
         else:
-            return f"❌ Unknown agent type: {agent_type}"
+            response = f"❌ Unknown agent type: {agent_type}"
+            self.conversation_history.add_assistant_message(response, agent_type="master")
+            return response
     
     def _has_active_session(self, session_id: str) -> bool:
         """Check if there's an active session with data."""
-        context = interactive_session.get_current_context()
-        return context is not None and len(context.current_data) > 0
+        # Check if session exists in contexts
+        if session_id in interactive_session.contexts:
+            context = interactive_session.contexts[session_id]
+            return len(context.current_data) > 0
+        return False
+    
+    def _get_session_context_string(self, session_id: str) -> str:
+        """
+        Retrieve RAG context from session as a formatted string with ALL available fields.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Formatted string with ICD codes, descriptions, and ALL available fields
+            (including OHDSI, SAB, etc.), or None if no data
+        """
+        session_context = interactive_session.get_context(session_id)
+        if session_context and session_context.current_data:
+            context_lines = []
+            for item in session_context.current_data.values():
+                # Start with basic code and description
+                line = f"[{item.key}] {item.value}"
+                
+                # Add ALL additional fields from the full document
+                if "full_document" in item.metadata:
+                    doc = item.metadata["full_document"]
+                    
+                    # Add OHDSI data if available (contains SNOMED mappings)
+                    if "OHDSI" in doc and doc["OHDSI"]:
+                        line += f"\n  OHDSI: {doc['OHDSI']}"
+                    
+                    # Add SAB (source abbreviation) if available
+                    if "SAB" in doc and doc["SAB"]:
+                        line += f"\n  SAB: {doc['SAB']}"
+                    
+                    # Add any other fields that might be useful
+                    for field, value in doc.items():
+                        if field not in ["CODE", "STR", "id", "OHDSI", "SAB"] and value:
+                            line += f"\n  {field}: {value}"
+                
+                context_lines.append(line)
+            
+            context_str = "\n\n".join(context_lines)
+            logger.debug(f"📋 Retrieved {len(session_context.current_data)} codes with full document data from session {session_id}")
+            return context_str
+        logger.debug(f"📋 No context data found in session {session_id}")
+        return None
     
     def _chat_icd_interactive(self, query: str, session_id: str):
         """
@@ -193,7 +310,8 @@ class MasterAgent:
         # Step 2: Update context in state
         # ConceptSetExtractorAgent expects raw JSON data, not processed response
         state["context"] = icd_result.get("data", "")
-        logger.info("Workflow Step 2: Context updated with ICD data.")
+        context_size = len(state["context"]) if state["context"] else 0
+        logger.info(f"📋 State updated: context set ({context_size} chars) with ICD data from search")
 
         # Step 3: Call ConceptSetExtractorAgent to process the context
         logger.info("Workflow Step 3: Calling ConceptSetExtractorAgent")
@@ -238,3 +356,91 @@ class MasterAgent:
         except Exception as e:
             logger.exception("Direct ICD chat failed")
             return f"An error occurred: {e}"
+    
+    def get_info(self):
+        """
+        Get system information about the master agent.
+        
+        Returns:
+            dict: System info with endpoint, deployment, API version, and available agents.
+        """
+        return {
+            "endpoint": os.getenv("AZURE_OPENAI_ENDPOINT", "Not configured"),
+            "deployment": os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "Not configured"),
+            "api_version": os.getenv("AZURE_OPENAI_API_VERSION", "Not configured"),
+            "specialized_agents": ["chat", "icd", "concept_set_extractor"]
+        }
+    
+    def get_agent_status(self):
+        """
+        Get status of all agents.
+        
+        Returns:
+            dict: Status information for all agents.
+        """
+        return {
+            "master_agent": "active",
+            "specialized_agents": {
+                "chat": "active",
+                "icd": "active", 
+                "concept_set_extractor": "active"
+            }
+        }
+    
+    def get_conversation_history(self):
+        """
+        Get conversation history and statistics.
+        
+        Returns:
+            dict: History info with messages and statistics.
+        """
+        if not hasattr(self, 'conversation_history'):
+            from modules.conversation_history import ConversationHistory
+            self.conversation_history = ConversationHistory()
+        
+        messages = self.conversation_history.messages
+        user_msgs = sum(1 for m in messages if m.role == "user")
+        assistant_msgs = sum(1 for m in messages if m.role == "assistant")
+        
+        agent_usage = {}
+        for m in messages:
+            if m.role == "assistant" and m.agent_type:
+                agent_usage[m.agent_type] = agent_usage.get(m.agent_type, 0) + 1
+        
+        return {
+            "messages": messages,
+            "stats": {
+                "total_messages": len(messages),
+                "user_messages": user_msgs,
+                "assistant_messages": assistant_msgs,
+                "agent_usage": agent_usage
+            }
+        }
+    
+    def save_conversation_history(self):
+        """
+        Save conversation history to file.
+        
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        if not hasattr(self, 'conversation_history'):
+            from modules.conversation_history import ConversationHistory
+            self.conversation_history = ConversationHistory()
+        
+        return self.conversation_history.save()
+    
+    def clear_conversation_history(self):
+        """Clear the conversation history."""
+        if not hasattr(self, 'conversation_history'):
+            from modules.conversation_history import ConversationHistory
+            self.conversation_history = ConversationHistory()
+        
+        self.conversation_history.clear()
+        logger.info("Conversation history cleared")
+    
+    def shutdown(self):
+        """Gracefully shutdown the agent system."""
+        logger.info("Shutting down MasterAgent...")
+        self.save_conversation_history()
+        logger.info("MasterAgent shutdown complete")
