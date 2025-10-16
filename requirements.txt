@@ -6,6 +6,8 @@ pydantic==2.9.2
 typing-extensions==4.12.2
 streamlit==1.28.0
 pyperclip==1.8.2
+azure-ai-openai==1.2.0
+azure-search-documents==11.7.0
 
 # Testing
 pytest==8.0.0
