@@ -288,6 +288,22 @@ sudo cat /opt/pcornet/.env
 sudo journalctl -u pcornet-chat -n 50 | grep -i azure
 ```
 
+#### Permission Denied Creating .venv
+If you see: `[Errno 13] Permission denied: '/opt/pcornet/.venv'`
+
+**Cause:** The pcornet user doesn't have write access to /opt/pcornet
+
+**Fix:**
+```bash
+# Set correct ownership
+sudo chown -R pcornet:pcornet /opt/pcornet
+
+# Retry the installation or manually create venv
+sudo -u pcornet python3 -m venv /opt/pcornet/.venv
+```
+
+**Note:** The latest installer version fixes this automatically by setting ownership before creating the venv.
+
 ## File Locations
 
 | Item | Location |
