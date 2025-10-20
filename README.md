@@ -87,6 +87,40 @@ AZURE_AI_SEARCH_API_KEY="your-search-admin-or-query-key"
 AZURE_AI_SEARCH_INDEX="pcornet-icd-index" # The name of your ICD search index
 ```
 
+## Deployment Options
+
+### Local Development (Default)
+
+Follow the setup instructions above for local development.
+
+### Ubuntu Server Production Deployment
+
+For production deployment on Ubuntu 24 Server, use the automated installer:
+
+```bash
+# Transfer files to server
+scp -r pcornet/ ubuntu@your-server-ip:/tmp/
+
+# SSH into server and run installer
+ssh ubuntu@your-server-ip
+cd /tmp/pcornet
+sudo ./install.sh
+```
+
+The installer sets up:
+- ✅ Systemd service (auto-restart, starts on boot)
+- ✅ Nginx reverse proxy
+- ✅ UFW firewall configuration
+- ✅ Dedicated user and secure permissions
+- ✅ Service management commands
+
+**Service Management:**
+```bash
+sudo ./manage.sh start|stop|restart|status|logs|tail
+```
+
+**Complete deployment guide:** See [docs/UBUNTU_DEPLOYMENT.md](docs/UBUNTU_DEPLOYMENT.md)
+
 ## Usage
 
 The application is run as a Streamlit web app.
