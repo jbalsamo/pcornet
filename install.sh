@@ -305,10 +305,14 @@ configure_nginx() {
     
     log "Creating Nginx site configuration..."
     cat > "/etc/nginx/sites-available/$NGINX_SITE_NAME" << EOF
+# PCORnet Nginx Configuration
+# Port 80 - HTTP (will be used by certbot for HTTPS setup)
 server {
     listen 80;
-    server_name _;  # Change to your domain
+    listen [::]:80;
+    server_name _;  # Change to your domain (e.g., pcornet.example.com)
 
+    # Proxy all requests to Streamlit app on internal port $APP_PORT
     location / {
         proxy_pass http://127.0.0.1:$APP_PORT;
         proxy_http_version 1.1;
@@ -321,9 +325,13 @@ server {
         proxy_read_timeout 86400;
     }
 
-    # Increase upload limit
+    # Increase upload limit for file uploads
     client_max_body_size 100M;
 }
+
+# Port 443 - HTTPS (will be configured automatically by certbot)
+# After running: sudo certbot --nginx -d your-domain.com
+# Certbot will add the HTTPS server block here and redirect HTTP to HTTPS
 EOF
     
     # Enable the site
@@ -417,11 +425,22 @@ start_service_and_show_logs() {
         echo "  - http://localhost:$APP_PORT (if accessing locally)"
         echo "  - http://YOUR_SERVER_IP (from external network)"
         echo ""
-        echo -e "${YELLOW}Important:${NC}"
-        echo "  1. Edit $APP_DIR/.env with your Azure credentials"
-        echo "  2. Restart the service: sudo systemctl restart $SERVICE_NAME"
-        echo "  3. Update server_name in /etc/nginx/sites-available/$NGINX_SITE_NAME"
-        echo "  4. For HTTPS, run: sudo certbot --nginx -d your-domain.com"
+        echo -e "${YELLOW}⚠️  REQUIRED CONFIGURATION:${NC}"
+        echo ""
+        echo "  ${YELLOW}1. Azure Credentials (REQUIRED)${NC}"
+        echo "     Edit: $APP_DIR/.env"
+        echo "     Fill in your actual Azure OpenAI and AI Search credentials"
+        echo "     Then restart: sudo systemctl restart $SERVICE_NAME"
+        echo ""
+        echo "  ${YELLOW}2. Domain Name (Optional - for HTTPS)${NC}"
+        echo "     Edit: /etc/nginx/sites-available/$NGINX_SITE_NAME"
+        echo "     Change: server_name _; to server_name your-domain.com;"
+        echo "     Then reload: sudo nginx -t && sudo systemctl reload nginx"
+        echo ""
+        echo "  ${YELLOW}3. HTTPS Setup (Recommended for production)${NC}"
+        echo "     After setting domain name, run:"
+        echo "     sudo apt install certbot python3-certbot-nginx"
+        echo "     sudo certbot --nginx -d your-domain.com"
         echo ""
         echo -e "${BLUE}Service Management Commands:${NC}"
         echo "  - Start:   sudo systemctl start $SERVICE_NAME"
