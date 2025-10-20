@@ -27,8 +27,8 @@ pytest --cov=modules --cov-report=html
 ## Test Structure
 
 - **conftest.py** - Shared fixtures and test configuration
-- **test_config.py** - Configuration module tests
-- **test_conversation_history.py** - Conversation history tests
+- **test_*.py** - All pytest test files (19 test modules)
+- **manual_debug_*.py** - Standalone debug scripts (not run by pytest)
 
 ## Adding New Tests
 

@@ -65,7 +65,7 @@ source activate.sh
 Install the required Python packages from `requirements.txt`.
 
 ```bash
-
+pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables
