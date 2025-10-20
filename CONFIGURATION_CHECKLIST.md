@@ -62,6 +62,33 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ---
 
+## Pre-Installation Requirements
+
+The installer performs these validation checks **before** installation:
+
+### ✅ **Python Version Check**
+- **Minimum Required:** Python 3.8+
+- **Checked Automatically:** Installer verifies python3 is installed and version is 3.8 or higher
+- **If Check Fails:** Installation stops with error message
+
+### ✅ **Required Files Check**
+The installer validates these files exist:
+- `main.py` - Application entry point
+- `requirements.txt` - Python dependencies
+- `modules/config.py` - Configuration module
+- `modules/master_agent.py` - Master agent orchestrator
+
+**If any files are missing:** Installation stops with list of missing files
+
+### ✅ **Virtual Environment Creation**
+- Creates `.venv` directory automatically
+- Validates venv creation was successful
+- Upgrades pip to latest version
+- Installs all dependencies from requirements.txt
+- **Error Handling:** Stops if venv creation or dependency installation fails
+
+---
+
 ## Install Script Variables
 
 The `install.sh` script has these **pre-configured** variables (you can customize before running):

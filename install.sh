@@ -135,6 +135,44 @@ create_app_user() {
 }
 
 ################################################################################
+# Validate Required Files
+################################################################################
+
+validate_required_files() {
+    section "Validating Required Files"
+    
+    # Get the directory where this script is located
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    
+    log "Checking for required files in $SCRIPT_DIR..."
+    
+    # List of required files
+    REQUIRED_FILES=(
+        "main.py"
+        "requirements.txt"
+        "modules/config.py"
+        "modules/master_agent.py"
+    )
+    
+    MISSING_FILES=()
+    
+    for file in "${REQUIRED_FILES[@]}"; do
+        if [ ! -f "$SCRIPT_DIR/$file" ]; then
+            MISSING_FILES+=("$file")
+            warn "Missing required file: $file"
+        else
+            log "Found: $file"
+        fi
+    done
+    
+    if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+        error "Missing required files: ${MISSING_FILES[*]}\nPlease run this script from the PCORnet project directory."
+    fi
+    
+    log "All required files present"
+}
+
+################################################################################
 # Setup Application Directory
 ################################################################################
 
@@ -168,20 +206,61 @@ setup_app_directory() {
 }
 
 ################################################################################
+# Check Python Version
+################################################################################
+
+check_python_version() {
+    section "Checking Python Version"
+    
+    # Check if python3 is available
+    if ! command -v python3 &> /dev/null; then
+        error "python3 is not installed. Please install Python 3 first."
+    fi
+    
+    # Get Python version
+    PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
+    log "Found Python version: $PYTHON_VERSION"
+    
+    # Extract major and minor version
+    PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d. -f1)
+    PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f2)
+    
+    # Check if Python 3.8 or higher
+    if [ "$PYTHON_MAJOR" -lt 3 ] || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]; }; then
+        error "Python 3.8 or higher is required. Found: $PYTHON_VERSION"
+    fi
+    
+    log "Python version check passed (3.8+ required)"
+}
+
+################################################################################
 # Setup Python Virtual Environment
 ################################################################################
 
 setup_python_environment() {
     section "Setting Up Python Virtual Environment"
     
+    # Verify requirements.txt exists
+    if [ ! -f "$APP_DIR/requirements.txt" ]; then
+        error "requirements.txt not found in $APP_DIR"
+    fi
+    
     log "Creating virtual environment..."
-    sudo -u "$APP_USER" python3 -m venv "$APP_DIR/.venv"
+    if sudo -u "$APP_USER" python3 -m venv "$APP_DIR/.venv"; then
+        log "Virtual environment created successfully"
+    else
+        error "Failed to create virtual environment. Check if python3-venv is installed."
+    fi
     
     log "Upgrading pip..."
     sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install --upgrade pip" >> "$LOG_FILE" 2>&1
     
     log "Installing Python dependencies..."
-    sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install -r requirements.txt" >> "$LOG_FILE" 2>&1
+    if sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install -r requirements.txt" >> "$LOG_FILE" 2>&1; then
+        log "Python dependencies installed successfully"
+    else
+        error "Failed to install Python dependencies. Check $LOG_FILE for details."
+    fi
     
     log "Python environment configured successfully"
 }
@@ -482,6 +561,8 @@ EOF
     # Pre-flight checks
     check_root
     check_ubuntu_version
+    check_python_version
+    validate_required_files
     
     # Installation steps
     check_and_stop_existing
