@@ -202,6 +202,10 @@ setup_app_directory() {
     mkdir -p "$APP_DIR/saved"
     mkdir -p "$APP_DIR/logs"
     
+    # Set ownership immediately so pcornet user can create venv
+    log "Setting ownership to $APP_USER..."
+    chown -R "$APP_USER:$APP_USER" "$APP_DIR"
+    
     log "Application files copied successfully"
 }
 
@@ -466,14 +470,19 @@ configure_firewall() {
 ################################################################################
 
 set_permissions() {
-    section "Setting Permissions"
+    section "Setting Final Permissions"
     
-    log "Setting ownership and permissions..."
-    chown -R "$APP_USER:$APP_USER" "$APP_DIR"
+    log "Setting final permissions..."
+    # Ownership already set in setup_app_directory, just set file modes
     chmod -R 755 "$APP_DIR"
     chmod 600 "$APP_DIR/.env"
     
-    log "Permissions set successfully"
+    # Ensure venv is owned by app user
+    if [ -d "$APP_DIR/.venv" ]; then
+        chown -R "$APP_USER:$APP_USER" "$APP_DIR/.venv"
+    fi
+    
+    log "Permissions finalized successfully"
 }
 
 ################################################################################
