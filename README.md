@@ -29,10 +29,13 @@ pcornet/
 │       ├── base_agent.py       # (Optional) Base class for agents
 │       ├── chat_agent.py       # General conversational agent
 │       └── icd_agent.py        # Agent for searching ICD codes
+├── tests/                      # Pytest test suite
+├── docs/                       # Project documentation
+├── scripts/                    # Utility and debug scripts
 ├── data/                       # Directory for session data
 ├── saved/                      # Directory for saved conversations/exports
-├── tests/                      # Pytest test suite
 ├── requirements.txt            # Python dependencies
+├── .cursorrules                # AI agent coding standards
 ├── activate.sh                 # Helper script to activate virtual environment
 ├── run_streamlit.sh            # Helper script to run the Streamlit app
 ├── .env                        # Local environment variables (gitignored)

@@ -1,0 +1,102 @@
+# PCORnet Project Rules
+
+## Project Structure
+- **All Python modules MUST be placed in the `modules/` directory**
+- **All tests MUST be placed in the `tests/` directory using pytest**
+- **All documentation MUST be placed in the `docs/` directory**
+- Never place module code directly in the project root (except `main.py` as the entry point)
+
+## Code Quality Standards
+
+### Data Validation
+- **Always validate user inputs** before processing
+- Use type hints on all functions and methods
+- Validate environment variables on startup
+- Check for None/empty values before using data
+- Use Pydantic models or dataclasses for complex data structures
+- Sanitize inputs to prevent injection attacks
+
+### Error Handling
+- **Never use bare `except:` clauses** - always specify exception types
+- Use try-except blocks around external API calls
+- Log errors with context (use logging module, not print statements)
+- Provide meaningful error messages to users
+- Handle edge cases explicitly (empty lists, None values, missing keys)
+- Use custom exceptions for domain-specific errors
+
+### Testing Requirements
+- **All new functions must have corresponding pytest tests**
+- Tests must be in the `tests/` directory
+- Use `conftest.py` for shared fixtures
+- Mock external dependencies (APIs, file I/O, databases)
+- Aim for >80% code coverage
+- Test both success and failure cases
+- Use descriptive test names: `test_<function>_<scenario>_<expected_result>`
+
+### Code Organization
+- One class per file (unless tightly coupled)
+- Group related functions in appropriately named modules
+- Keep functions small and focused (ideally <50 lines)
+- Use meaningful variable and function names
+- Add docstrings to all public functions and classes
+
+### Documentation
+- Maintain a README.md in the project root
+- Document complex algorithms or business logic in `docs/`
+- Update documentation when changing functionality
+- Include examples in docstrings
+- Keep a CHANGELOG for significant changes
+
+## Python Best Practices
+- Follow PEP 8 style guidelines
+- Use f-strings for string formatting
+- Prefer list comprehensions over map/filter when readable
+- Use context managers (`with` statements) for file operations
+- Keep imports organized: stdlib, third-party, local (separated by blank lines)
+- Remove unused imports and variables
+
+## Security
+- Never commit secrets or API keys
+- Use environment variables for sensitive configuration
+- Validate and sanitize all external inputs
+- Use parameterized queries for database operations
+- Keep dependencies up to date
+
+## Git Practices
+- Write clear, descriptive commit messages
+- Keep commits focused on single changes
+- Update .gitignore to exclude sensitive files, caches, and build artifacts
+
+## Type Hints & Static Analysis
+- Use type hints on all function signatures (parameters and return types)
+- Run mypy for static type checking in CI/CD
+- Use Optional[Type] for nullable values
+- Type hints improve code clarity and catch type errors early
+
+## Dependency Management
+- Pin exact versions in requirements.txt (e.g., package==1.2.3)
+- Separate dev dependencies from production (requirements-dev.txt)
+- Document Python version requirements in README
+- Keep dependencies minimal and regularly updated
+- Ensures reproducible builds and reduces security risks
+
+## Environment Variable Validation
+- Validate all required environment variables on application startup
+- Provide clear error messages for missing/invalid env vars
+- Use a dedicated config validation module
+- Never use default values for sensitive configuration
+- Prevents runtime errors from misconfiguration
+
+## Logging Standards
+- Use structured logging with context (JSON format for production)
+- Set appropriate log levels (DEBUG for development, INFO/WARNING for production)
+- Never log sensitive information (API keys, passwords, PII)
+- Include request IDs for distributed tracing
+- Makes debugging and monitoring much easier
+
+## Code Coverage Requirements
+- Maintain minimum 80% code coverage
+- Run coverage reports in CI/CD pipeline
+- Focus on testing critical business logic and edge cases
+- Exclude test files and __init__.py from coverage metrics
+- Ensures code quality and test completeness
