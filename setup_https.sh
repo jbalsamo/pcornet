@@ -59,11 +59,11 @@ check_root() {
 }
 
 show_usage() {
-    cat &lt;&lt; EOF
+    cat << EOF
 ${BLUE}PCORnet HTTPS Setup Script${NC}
 
 ${GREEN}Usage:${NC}
-    sudo ./setup_https.sh &lt;domain&gt; &lt;email&gt;
+    sudo ./setup_https.sh <domain> <email>
 
 ${GREEN}Example:${NC}
     sudo ./setup_https.sh pcornet.example.com admin@example.com
@@ -234,7 +234,7 @@ show_summary() {
 
 main() {
     echo -e "${GREEN}"
-    cat &lt;&lt; "EOF"
+    cat << "EOF"
 ╔═══════════════════════════════════════════════════════════╗
 ║         PCORnet HTTPS Setup - Let's Encrypt SSL          ║
 ╚═══════════════════════════════════════════════════════════╝
