@@ -539,7 +539,7 @@ configure_nginx() {
 server {
     listen 80;
     listen [::]:80;
-    server_name _;  # Change to your domain (e.g., pcornet.example.com)
+    server_name pcornet-csg.eastus2.cloudapp.azure.com;  # Change to your domain (e.g., pcornet.example.com)
 
     # Proxy all requests to Streamlit app on internal port $APP_PORT
     location / {
