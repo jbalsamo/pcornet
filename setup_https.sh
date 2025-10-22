@@ -88,7 +88,7 @@ check_prerequisites() {
     section "Checking Prerequisites"
     
     # Check Nginx
-    if ! command -v nginx &gt; /dev/null; then
+    if ! command -v nginx > /dev/null; then
         error "Nginx is not installed. Run ./install.sh first"
     fi
     log "✓ Nginx is installed"
@@ -106,7 +106,7 @@ check_prerequisites() {
     log "✓ Nginx is running"
     
     # Check firewall
-    if command -v ufw &gt; /dev/null; then
+    if command -v ufw > /dev/null; then
         if ufw status | grep -q "80.*ALLOW"; then
             log "✓ Port 80 is allowed in firewall"
         else
@@ -117,7 +117,7 @@ check_prerequisites() {
             log "✓ Port 443 is allowed in firewall"
         else
             warn "Port 443 may not be open in firewall. Opening now..."
-            ufw allow 443/tcp &gt;&gt; "$LOG_FILE" 2&gt;&amp;1
+            ufw allow 443/tcp >> "$LOG_FILE" 2>&1
         fi
     fi
     
@@ -136,7 +136,7 @@ update_nginx_domain() {
     sed -i "s/server_name _;/server_name $domain;/" "$NGINX_CONFIG"
     
     log "Testing Nginx configuration..."
-    if nginx -t &gt;&gt; "$LOG_FILE" 2&gt;&amp;1; then
+    if nginx -t >> "$LOG_FILE" 2>&1; then
         log "✓ Nginx configuration is valid"
         log "Reloading Nginx..."
         systemctl reload nginx
@@ -149,13 +149,13 @@ update_nginx_domain() {
 install_certbot() {
     section "Installing Certbot"
     
-    if command -v certbot &gt; /dev/null; then
+    if command -v certbot > /dev/null; then
         log "Certbot is already installed"
         certbot --version | tee -a "$LOG_FILE"
     else
         log "Installing certbot and nginx plugin..."
-        apt update &gt;&gt; "$LOG_FILE" 2&gt;&amp;1
-        apt install -y certbot python3-certbot-nginx &gt;&gt; "$LOG_FILE" 2&gt;&amp;1
+        apt update >> "$LOG_FILE" 2>&1
+        apt install -y certbot python3-certbot-nginx >> "$LOG_FILE" 2>&1
         log "✓ Certbot installed successfully"
     fi
 }
@@ -176,7 +176,7 @@ obtain_certificate() {
         --agree-tos \
         --no-eff-email \
         --redirect \
-        --non-interactive &gt;&gt; "$LOG_FILE" 2&gt;&amp;1; then
+        --non-interactive >> "$LOG_FILE" 2>&1; then
         log "✓ SSL certificate obtained successfully"
     else
         error "Failed to obtain SSL certificate. Check $LOG_FILE for details"
@@ -187,7 +187,7 @@ test_renewal() {
     section "Testing Certificate Auto-Renewal"
     
     log "Running dry-run renewal test..."
-    if certbot renew --dry-run &gt;&gt; "$LOG_FILE" 2&gt;&amp;1; then
+    if certbot renew --dry-run >> "$LOG_FILE" 2>&1; then
         log "✓ Auto-renewal test passed"
     else
         warn "Auto-renewal test failed. Check $LOG_FILE"
@@ -206,7 +206,7 @@ show_summary() {
     echo -e "  https://$domain"
     echo ""
     echo -e "${BLUE}Certificate Information:${NC}"
-    certbot certificates 2&gt;/dev/null | grep -A 5 "$domain" || true
+    certbot certificates 2>/dev/null | grep -A 5 "$domain" || true
     echo ""
     echo -e "${BLUE}Certificate Auto-Renewal:${NC}"
     echo "  Certificates expire in 90 days"
