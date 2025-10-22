@@ -117,12 +117,27 @@ The installer sets up:
 - ✅ Dedicated user and secure permissions
 - ✅ Service management commands
 
+**HTTPS Setup (Optional but Recommended):**
+```bash
+# One-command HTTPS setup with Let's Encrypt
+sudo ./setup_https.sh your-domain.com your-email@example.com
+```
+
+**Updating Existing Installation:**
+```bash
+# Quick update with automatic preservation of config and data
+sudo ./install.sh --patch
+```
+
 **Service Management:**
 ```bash
 sudo ./manage.sh start|stop|restart|status|logs|tail
 ```
 
-**Complete deployment guide:** See [docs/UBUNTU_DEPLOYMENT.md](docs/UBUNTU_DEPLOYMENT.md)
+**Documentation:**
+- **Deployment:** [docs/UBUNTU_DEPLOYMENT.md](docs/UBUNTU_DEPLOYMENT.md)
+- **HTTPS Setup:** [docs/HTTPS_SETUP_GUIDE.md](docs/HTTPS_SETUP_GUIDE.md)
+- **Updates/Patches:** [docs/UPGRADE_AND_PATCHING.md](docs/UPGRADE_AND_PATCHING.md)
 
 ## Usage
 
