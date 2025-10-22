@@ -1,0 +1,10 @@
+GLP1-RA’s have been shown to have anti-inflammatory effects, and we hypothesize that they may be effective in reducing the risk of Long COVID after acute SARS-CoV-2 infection. We want to do a study using observational EHR data to evaluate whether GLP1-RAs reduce the risk of developing Long COVID. Make me a specification that could be used by data analysts (the coders) to create the data pipeline and set up the analysis for this study, including a list of concept sets needed for the covariates for cohort selection, balancing, outcome, timing (including T0, specific criteria for duration or timing of covariates, washout periods and duration of time to observe the outcome).Generate a list of OMOP concept sets for the covariates needed for the study in an excel document.
+ 
+Generate a list of codes using SNOMED, CPT or Rx Norm (as appropriate) for the following concepts:
+Medication: GLP1-RA, Tirzepatide, Systemic Corticosteroids
+Condition: T1D, T2D, Heart Failure
+Encounter: Hospitalization
+Populate this with the actual concept set codes from OMOP
+
+
+ 

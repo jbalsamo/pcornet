@@ -1,15 +1,20 @@
-langchain==0.2.16
-langchain-openai==0.1.25
-langgraph==0.2.28
-python-dotenv==1.0.1
-pydantic==2.9.2
-typing-extensions==4.12.2
-streamlit==1.28.0
-pyperclip==1.8.2
-azure-ai-openai==1.2.0
-azure-search-documents==11.7.0
+langchain
+langchain-openai
+langgraph
+python-dotenv
+pydantic
+typing-extensions
+streamlit
+pyperclip
+azure-search-documents
+openai
+
+# Memory & Embeddings
+chromadb>=0.4.18
+sentence-transformers>=2.2.2
+tiktoken>=0.5.1
 
 # Testing
-pytest==8.0.0
-pytest-cov==4.1.0
-pytest-asyncio==0.23.5
+pytest
+pytest-cov
+pytest-asyncio
