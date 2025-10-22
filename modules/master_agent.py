@@ -16,8 +16,7 @@ from modules.agents.chat_agent import ChatAgent
 from modules.agents.icd_agent import IcdAgent
 from modules.agents.concept_set_extractor_agent import ConceptSetExtractorAgent
 from modules.interactive_session import interactive_session
-from openai import AzureOpenAI
-from modules.config import CONCEPT_SET_CLASSIFICATION_PROMPT
+from modules.config import CONCEPT_SET_CLASSIFICATION_PROMPT, create_openai_client
 from modules.memory.memory_manager import memory_manager
 
 logger = logging.getLogger(__name__)
@@ -74,11 +73,7 @@ class MasterAgent:
 
         # Quick validation of Azure OpenAI deployment
         try:
-            self.client = AzureOpenAI(
-                api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            )
+            self.client = create_openai_client()
             logger.info("✅ AzureOpenAI client initialized for MasterAgent")
         except Exception as e:
             logger.exception("Failed to initialize AzureOpenAI client")

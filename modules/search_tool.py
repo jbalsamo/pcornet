@@ -24,9 +24,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from .config import get_config
-
-from .config import get_config
+from .config import get_config, create_openai_client
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +32,11 @@ try:
     from azure.core.credentials import AzureKeyCredential
     from azure.search.documents import SearchClient
     from azure.search.documents.models import VectorizedQuery
-    from openai import AzureOpenAI
 except Exception as e:  # pragma: no cover - import errors are surfaced at runtime
     # Defer the import error to runtime usage to keep module import time flexible in tests
     AzureKeyCredential = None
     SearchClient = None
     VectorizedQuery = None
-    AzureOpenAI = None
 
 
 class SearchError(Exception):
@@ -161,23 +157,8 @@ class Search:
                 "or provide an `embedding` directly to Search()."
             )
 
-        # Use get_config() for endpoint and key
-        openai_config = get_config()
-        aoai_endpoint = getattr(openai_config, "endpoint", None)
-        aoai_key = getattr(openai_config, "api_key", None)
-
-        if not aoai_endpoint or not aoai_key:
-            raise SearchError("Azure OpenAI endpoint and api key must be present to create embeddings")
-
-        if AzureOpenAI is None:
-            raise SearchError("openai SDK is not installed; cannot create embeddings")
-
         try:
-            client = AzureOpenAI(
-                api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-                azure_endpoint=aoai_endpoint,
-                api_key=aoai_key,
-            )
+            client = create_openai_client()
             resp = client.embeddings.create(model=deployment, input=text)
             embedding = resp.data[0].embedding
             return embedding

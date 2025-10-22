@@ -48,7 +48,10 @@ def _mock_sdk_clients(monkeypatch):
             r = FakeSearchResult({"@search.score": 0.92, "id": "doc1", "title": "Heart Disease", "content": "Description of heart disease."})
             return FakeSearchResults([r])
 
-    monkeypatch.setattr("modules.search_tool.AzureOpenAI", FakeAzureOpenAI)
+    # Mock create_openai_client to return our fake client (at both locations for robustness)
+    fake_client = FakeAzureOpenAI()
+    monkeypatch.setattr("modules.config.create_openai_client", lambda: fake_client)
+    monkeypatch.setattr("modules.search_tool.create_openai_client", lambda: fake_client)
     monkeypatch.setattr("modules.search_tool.SearchClient", FakeSearchClient)
     monkeypatch.setattr("modules.search_tool.AzureKeyCredential", lambda key: key)
     # Provide a simple VectorizedQuery factory
@@ -65,13 +68,13 @@ def test_search_hybrid_returns_hits(mock_azure_openai_config, monkeypatch):
     monkeypatch.setenv("AZURE_SEARCH_API_VERSION", "2023-07-01-Preview")
     monkeypatch.setenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "embedding-deploy")
 
-    # Patch SDK clients for embeddings and search
-    _mock_sdk_clients(monkeypatch)
-
     # Force reload of config to pick up new env vars
     import importlib
     import modules.config
     importlib.reload(modules.config)
+
+    # Patch SDK clients for embeddings and search AFTER config reload
+    _mock_sdk_clients(monkeypatch)
 
     # Import Search after env vars are set and config reloaded
     from modules.search_tool import Search

@@ -10,9 +10,8 @@ non-specialized queries.
 # modules/agents/chat_agent.py
 import os
 import logging
-from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
-from ..config import get_config, CONCEPT_SET_FORMATTING_PROMPT
+from ..config import get_config, create_chat_llm, CONCEPT_SET_FORMATTING_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -29,23 +28,15 @@ class ChatAgent:
         Initializes the ChatAgent and its underlying language model.
 
         This constructor configures and instantiates the AzureChatOpenAI model
-        using environment variables for the deployment name, endpoint, API version,
-        and key. It sets a default temperature and token limit for the responses.
+        using centralized configuration. It sets a default temperature and 
+        token limit for the responses.
 
         Raises:
             Exception: If the language model fails to initialize, often due to
                        missing or incorrect environment variables.
         """
         try:
-            config = get_config()
-            self.llm = AzureChatOpenAI(
-                deployment_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
-                temperature=config.agent_temperature,
-                max_tokens=1000,
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-                api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-05-01-preview"),
-                openai_api_key=os.getenv("AZURE_OPENAI_API_KEY")
-            )
+            self.llm = create_chat_llm(max_tokens=1000)
             logger.info("✅ ChatAgent LLM initialized successfully")
         except Exception as e:
             logger.exception("Failed to initialize ChatAgent LLM")

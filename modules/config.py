@@ -210,6 +210,54 @@ def get_config():
         config = AppConfig()
     return config
 
+def create_chat_llm(max_tokens: int = 1000, temperature: float = None):
+    """
+    Creates and returns a standardized AzureChatOpenAI instance.
+    
+    This helper method centralizes the creation of LLM clients for agents,
+    ensuring consistent configuration across the application.
+    
+    Args:
+        max_tokens: Maximum tokens for the response (default: 1000)
+        temperature: Temperature for response generation (default: from config)
+    
+    Returns:
+        AzureChatOpenAI: Configured LLM client instance
+    """
+    from langchain_openai import AzureChatOpenAI
+    
+    cfg = get_config()
+    temp = temperature if temperature is not None else cfg.agent_temperature
+    
+    return AzureChatOpenAI(
+        deployment_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+        temperature=temp,
+        max_tokens=max_tokens,
+        azure_endpoint=cfg.azure_openai_endpoint,
+        api_version=cfg.azure_openai_api_version,
+        openai_api_key=cfg.azure_openai_api_key
+    )
+
+def create_openai_client():
+    """
+    Creates and returns a standardized AzureOpenAI client instance.
+    
+    This helper method centralizes the creation of OpenAI clients for
+    operations like embeddings, fact extraction, and classifications.
+    
+    Returns:
+        AzureOpenAI: Configured OpenAI client instance
+    """
+    from openai import AzureOpenAI
+    
+    cfg = get_config()
+    
+    return AzureOpenAI(
+        api_version=cfg.azure_openai_api_version,
+        azure_endpoint=cfg.azure_openai_endpoint,
+        api_key=cfg.azure_openai_api_key,
+    )
+
 # Prompt Templates
 CONCEPT_SET_CLASSIFICATION_PROMPT = """
 You are an expert at classifying user intent. Your task is to determine if the user's query is asking to create, generate, or find a "concept set".

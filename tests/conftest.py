@@ -4,6 +4,10 @@ Pytest configuration and shared fixtures.
 import pytest
 import os
 from unittest.mock import Mock, MagicMock
+from dotenv import load_dotenv
+
+# Load environment variables from .env file at module import time
+load_dotenv()
 
 
 def pytest_configure(config):
@@ -34,11 +38,14 @@ def mock_azure_openai_config():
 @pytest.fixture
 def check_azure_credentials():
     """Check if Azure credentials are configured."""
+    # Reload dotenv to ensure fresh values (in case fixture runs before module-level load)
+    load_dotenv(override=True)
+    
     required_vars = [
         'AZURE_OPENAI_ENDPOINT',
         'AZURE_OPENAI_API_KEY',
         'AZURE_AI_SEARCH_ENDPOINT',
-        'AZURE_AI_SEARCH_KEY'
+        'AZURE_AI_SEARCH_API_KEY'  # Fixed: was AZURE_AI_SEARCH_KEY
     ]
     
     missing = [var for var in required_vars if not os.getenv(var)]

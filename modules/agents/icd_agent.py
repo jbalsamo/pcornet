@@ -55,17 +55,9 @@ class IcdAgent:
 
     def _create_llm(self):
         """Creates and returns an LLM client for processing search results."""
-        from modules.config import get_config
-        config = get_config()
+        from modules.config import create_chat_llm
         
-        return AzureChatOpenAI(
-            deployment_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
-            temperature=config.agent_temperature,
-            max_tokens=1000,
-            azure_endpoint=config.azure_openai_endpoint,
-            api_version=config.azure_openai_api_version,
-            openai_api_key=config.azure_openai_api_key
-        )
+        return create_chat_llm(max_tokens=1000)
 
     def process(self, query: str) -> dict:
         """

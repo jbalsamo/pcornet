@@ -1,0 +1,363 @@
+{
+  "fact_20251022_152550_535980": {
+    "fact_type": "domain_knowledge",
+    "content": "ICD-10 code I10 refers to essential (primary) hypertension.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "essential hypertension",
+      "primary hypertension",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_152550_535980",
+    "created_at": "2025-10-22T15:25:50.536006",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152550_536498": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension is high blood pressure not caused by another disease.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "high blood pressure"
+    ],
+    "id": "fact_20251022_152550_536498",
+    "created_at": "2025-10-22T15:25:50.536518",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152550_536898": {
+    "fact_type": "context",
+    "content": "User asked for the meaning of ICD code I10.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "ICD code"
+    ],
+    "id": "fact_20251022_152550_536898",
+    "created_at": "2025-10-22T15:25:50.536910",
+    "access_count": 3,
+    "last_accessed": "2025-10-22T15:38:02.981332"
+  },
+  "fact_20251022_152619_760918": {
+    "fact_type": "domain_knowledge",
+    "content": "ICD-10 code I10 is defined as essential (primary) hypertension.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "essential hypertension",
+      "primary hypertension",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_152619_760918",
+    "created_at": "2025-10-22T15:26:19.760934",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_761254": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension refers to high blood pressure not caused by another underlying disease.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "primary hypertension",
+      "hypertension"
+    ],
+    "id": "fact_20251022_152619_761254",
+    "created_at": "2025-10-22T15:26:19.761260",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_761594": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension is the most common type of hypertension.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "hypertension"
+    ],
+    "id": "fact_20251022_152619_761594",
+    "created_at": "2025-10-22T15:26:19.761598",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_761754": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension increases the risk for heart attack, stroke, and kidney disease.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "heart attack",
+      "stroke",
+      "kidney disease"
+    ],
+    "id": "fact_20251022_152619_761754",
+    "created_at": "2025-10-22T15:26:19.761758",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_761971": {
+    "fact_type": "domain_knowledge",
+    "content": "Diagnosis of essential hypertension is made when blood pressure readings are consistently at or above 140/90 mmHg.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "blood pressure",
+      "140/90 mmHg"
+    ],
+    "id": "fact_20251022_152619_761971",
+    "created_at": "2025-10-22T15:26:19.761981",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_762221": {
+    "fact_type": "domain_knowledge",
+    "content": "Management of essential hypertension may include lifestyle modifications and medications.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "lifestyle modifications",
+      "medications"
+    ],
+    "id": "fact_20251022_152619_762221",
+    "created_at": "2025-10-22T15:26:19.762230",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_762586": {
+    "fact_type": "context",
+    "content": "User requested an explanation of ICD-10 code I10.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_152619_762586",
+    "created_at": "2025-10-22T15:26:19.762599",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_152619_762805": {
+    "fact_type": "user_preference",
+    "content": "User may be interested in SNOMED mappings or additional related information.",
+    "confidence": "medium",
+    "entities": [
+      "SNOMED",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_152619_762805",
+    "created_at": "2025-10-22T15:26:19.762810",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153520_490027": {
+    "fact_type": "domain_knowledge",
+    "content": "ICD-10 code I10 stands for Essential (primary) hypertension.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10",
+      "I10",
+      "Essential (primary) hypertension"
+    ],
+    "id": "fact_20251022_153520_490027",
+    "created_at": "2025-10-22T15:35:20.490057",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153520_491457": {
+    "fact_type": "context",
+    "content": "User asked for the meaning of ICD code I10.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10",
+      "I10"
+    ],
+    "id": "fact_20251022_153520_491457",
+    "created_at": "2025-10-22T15:35:20.491483",
+    "access_count": 2,
+    "last_accessed": "2025-10-22T15:38:02.981343"
+  },
+  "fact_20251022_153551_034728": {
+    "fact_type": "domain_knowledge",
+    "content": "ICD-10 code I10 refers to essential (primary) hypertension.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "essential hypertension",
+      "primary hypertension",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_153551_034728",
+    "created_at": "2025-10-22T15:35:51.034756",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153551_035641": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension is high blood pressure not caused by another underlying condition.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "high blood pressure"
+    ],
+    "id": "fact_20251022_153551_035641",
+    "created_at": "2025-10-22T15:35:51.035663",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153551_036444": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension is a significant risk factor for cardiovascular diseases such as heart attack, stroke, and kidney disease.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "cardiovascular diseases",
+      "heart attack",
+      "stroke",
+      "kidney disease"
+    ],
+    "id": "fact_20251022_153551_036444",
+    "created_at": "2025-10-22T15:35:51.036464",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153551_037085": {
+    "fact_type": "context",
+    "content": "User requested an explanation of ICD-10 code I10.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_153551_037085",
+    "created_at": "2025-10-22T15:35:51.037098",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153551_037668": {
+    "fact_type": "user_preference",
+    "content": "User may be interested in SNOMED CT mappings or further coding details.",
+    "confidence": "medium",
+    "entities": [
+      "SNOMED CT",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_153551_037668",
+    "created_at": "2025-10-22T15:35:51.037679",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153741_661381": {
+    "fact_type": "domain_knowledge",
+    "content": "ICD-10 code I10 represents essential (primary) hypertension.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "essential hypertension",
+      "primary hypertension",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_153741_661381",
+    "created_at": "2025-10-22T15:37:41.661397",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153741_661805": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension is high blood pressure with no identifiable secondary cause.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "primary hypertension",
+      "high blood pressure"
+    ],
+    "id": "fact_20251022_153741_661805",
+    "created_at": "2025-10-22T15:37:41.661811",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153741_662290": {
+    "fact_type": "context",
+    "content": "User asked for the meaning of ICD code I10.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "ICD code"
+    ],
+    "id": "fact_20251022_153741_662290",
+    "created_at": "2025-10-22T15:37:41.662294",
+    "access_count": 1,
+    "last_accessed": "2025-10-22T15:38:02.981350"
+  },
+  "fact_20251022_153809_293906": {
+    "fact_type": "domain_knowledge",
+    "content": "ICD-10 code I10 represents essential (primary) hypertension.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "essential hypertension",
+      "primary hypertension",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_153809_293906",
+    "created_at": "2025-10-22T15:38:09.293931",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153809_295026": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension is high blood pressure not caused by another disease or condition.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "primary hypertension",
+      "hypertension"
+    ],
+    "id": "fact_20251022_153809_295026",
+    "created_at": "2025-10-22T15:38:09.295045",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153809_295671": {
+    "fact_type": "domain_knowledge",
+    "content": "Essential hypertension increases the risk of heart disease, stroke, and other complications.",
+    "confidence": "high",
+    "entities": [
+      "essential hypertension",
+      "heart disease",
+      "stroke"
+    ],
+    "id": "fact_20251022_153809_295671",
+    "created_at": "2025-10-22T15:38:09.295684",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153809_296055": {
+    "fact_type": "context",
+    "content": "User requested an explanation of ICD-10 code I10.",
+    "confidence": "high",
+    "entities": [
+      "I10",
+      "ICD-10"
+    ],
+    "id": "fact_20251022_153809_296055",
+    "created_at": "2025-10-22T15:38:09.296060",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251022_153809_296398": {
+    "fact_type": "user_preference",
+    "content": "User may be interested in SNOMED mappings for ICD-10 codes.",
+    "confidence": "medium",
+    "entities": [
+      "SNOMED",
+      "ICD-10",
+      "I10"
+    ],
+    "id": "fact_20251022_153809_296398",
+    "created_at": "2025-10-22T15:38:09.296402",
+    "access_count": 0,
+    "last_accessed": null
+  }
+}

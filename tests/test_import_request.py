@@ -16,9 +16,9 @@ except ImportError:
 @pytest.mark.skipif(not AZURE_AVAILABLE, reason="Azure SDK not installed")
 def test_search_index_connection():
     """Test that we can connect to and retrieve the Azure Search index."""
-    endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
-    key = os.getenv("AZURE_SEARCH_API_KEY")
-    index_name = os.getenv("AZURE_SEARCH_INDEX_NAME", "pcornet-icd-index")
+    endpoint = os.getenv("AZURE_AI_SEARCH_ENDPOINT")
+    key = os.getenv("AZURE_AI_SEARCH_API_KEY")
+    index_name = os.getenv("PCORNET_ICD_INDEX_NAME", "pcornet-icd-index")
     
     # Skip test if credentials not available
     if not endpoint or not key:

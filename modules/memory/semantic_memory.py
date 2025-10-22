@@ -9,7 +9,6 @@ import logging
 import os
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from openai import AzureOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +38,8 @@ class SemanticMemory:
         
         # Initialize Azure OpenAI for fact extraction
         try:
-            self.client = AzureOpenAI(
-                api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            )
+            from ..config import create_openai_client
+            self.client = create_openai_client()
         except Exception as e:
             logger.warning(f"Failed to initialize OpenAI client for fact extraction: {e}")
             self.client = None
