@@ -133,6 +133,13 @@ Internet → Port 80/443 (Nginx) → Port 8888 (Streamlit App)
 
 ### To Enable HTTPS:
 
+**Option 1: Automated Setup (Recommended)**
+```bash
+# One-command HTTPS setup
+sudo ./setup_https.sh your-domain.com your-email@example.com
+```
+
+**Option 2: Manual Setup**
 ```bash
 # 1. Install certbot
 sudo apt install certbot python3-certbot-nginx
@@ -147,6 +154,8 @@ sudo nginx -t && sudo systemctl reload nginx
 # 4. Run certbot (will auto-configure port 443 and redirect)
 sudo certbot --nginx -d your-domain.com
 ```
+
+**Complete Guide:** See [docs/HTTPS_SETUP_GUIDE.md](docs/HTTPS_SETUP_GUIDE.md)
 
 Certbot will:
 - ✅ Obtain free SSL certificate from Let's Encrypt
@@ -188,6 +197,29 @@ sudo journalctl -u pcornet-chat -n 20
 
 ---
 
+## Updating Your Installation
+
+### Quick Update
+
+```bash
+# Option 1: Automated patch mode (recommended)
+sudo ./install.sh --patch
+
+# Option 2: Let installer detect and prompt
+sudo ./install.sh
+```
+
+The patch mode:
+- ✅ Updates application code
+- ✅ Updates Python dependencies
+- ✅ Preserves .env configuration
+- ✅ Preserves data and saved conversations
+- ✅ Preserves HTTPS configuration
+
+**Complete Guide:** See [docs/UPGRADE_AND_PATCHING.md](docs/UPGRADE_AND_PATCHING.md)
+
+---
+
 ## Summary
 
 ### Must Fill Out:
@@ -207,12 +239,13 @@ sudo journalctl -u pcornet-chat -n 20
 - ✅ Service auto-start (handled by installer)
 - ✅ Firewall rules (handled by installer)
 
-### Requires Separate Step:
-- 🔒 **Port 443 HTTPS** - Run certbot after domain configuration
+### Enhanced Features:
+- 🔒 **HTTPS Setup** - Automated with `./setup_https.sh` script
+- 🔄 **Easy Updates** - Patch mode with `./install.sh --patch`
 
 ---
 
-**The installer handles all port configuration automatically. You only need to:**
+**The installer handles all configuration automatically. You need to:**
 1. Fill out Azure credentials in `.env`
-2. (Optional) Set domain name for HTTPS
-3. (Optional) Run certbot for SSL certificate
+2. (Optional) Set up HTTPS with `./setup_https.sh your-domain.com email@example.com`
+3. (Future updates) Run `sudo ./install.sh --patch`

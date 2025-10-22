@@ -8,7 +8,10 @@
 # - Nginx reverse proxy
 # - Proper environment configuration
 #
-# Usage: sudo ./install.sh
+# Usage: 
+#   sudo ./install.sh              # Full installation
+#   sudo ./install.sh --patch      # Update/patch existing installation
+#   sudo ./install.sh --upgrade    # Alias for --patch
 ################################################################################
 
 set -e  # Exit on error
@@ -28,6 +31,9 @@ APP_DIR="/opt/pcornet"
 SERVICE_NAME="pcornet-chat"
 NGINX_SITE_NAME="pcornet"
 LOG_FILE="/var/log/${SERVICE_NAME}-install.log"
+
+# Installation mode (full or patch)
+INSTALL_MODE="full"  # Default to full installation
 
 ################################################################################
 # Helper Functions
@@ -73,6 +79,44 @@ check_ubuntu_version() {
     log "Detected: $PRETTY_NAME"
 }
 
+detect_existing_installation() {
+    if [ -d "$APP_DIR" ] && [ -f "/etc/systemd/system/${SERVICE_NAME}.service" ]; then
+        return 0  # Installation exists
+    else
+        return 1  # No installation found
+    fi
+}
+
+parse_arguments() {
+    for arg in "$@"; do
+        case "$arg" in
+            --patch|--upgrade)
+                INSTALL_MODE="patch"
+                log "Running in PATCH/UPGRADE mode"
+                ;;
+            --help|-h)
+                cat << EOF
+PCORnet Installer
+
+Usage:
+    sudo ./install.sh              # Full installation
+    sudo ./install.sh --patch      # Update existing installation
+    sudo ./install.sh --upgrade    # Alias for --patch
+
+Modes:
+    Full Install    - Complete fresh installation
+    Patch/Upgrade   - Update existing installation, preserve .env and data
+
+EOF
+                exit 0
+                ;;
+            *)
+                warn "Unknown argument: $arg"
+                ;;
+        esac
+    done
+}
+
 ################################################################################
 # Check if already installed and stop service
 ################################################################################
@@ -102,6 +146,14 @@ check_and_stop_existing() {
 install_system_dependencies() {
     section "Installing System Dependencies"
     
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        log "PATCH MODE: Checking system dependencies..."
+        # Still update packages but don't force install
+        apt update >> "$LOG_FILE" 2>&1
+        log "System packages up to date"
+        return 0
+    fi
+    
     log "Updating package lists..."
     apt update >> "$LOG_FILE" 2>&1
     
@@ -128,6 +180,9 @@ create_app_user() {
     if id "$APP_USER" &>/dev/null; then
         log "User $APP_USER already exists"
     else
+        if [ "$INSTALL_MODE" = "patch" ]; then
+            error "PATCH MODE: User $APP_USER does not exist. Run full install first."
+        fi
         log "Creating user $APP_USER..."
         adduser --system --group --home "$APP_DIR" --shell /bin/bash "$APP_USER"
         log "User $APP_USER created successfully"
@@ -179,34 +234,61 @@ validate_required_files() {
 setup_app_directory() {
     section "Setting Up Application Directory"
     
-    log "Creating application directory at $APP_DIR..."
-    mkdir -p "$APP_DIR"
-    
     # Get the directory where this script is located
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     
-    log "Copying application files from $SCRIPT_DIR..."
-    
-    # Copy all necessary files
-    rsync -av --exclude='.venv' \
-              --exclude='__pycache__' \
-              --exclude='*.pyc' \
-              --exclude='.git' \
-              --exclude='data/' \
-              --exclude='saved/' \
-              --exclude='.env' \
-              "$SCRIPT_DIR/" "$APP_DIR/" >> "$LOG_FILE" 2>&1
-    
-    # Create necessary directories
-    mkdir -p "$APP_DIR/data"
-    mkdir -p "$APP_DIR/saved"
-    mkdir -p "$APP_DIR/logs"
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        log "PATCH MODE: Updating application files only"
+        
+        # Backup .env if it exists
+        if [ -f "$APP_DIR/.env" ]; then
+            log "Backing up .env file..."
+            cp "$APP_DIR/.env" "$APP_DIR/.env.backup.$(date +%Y%m%d_%H%M%S)"
+        fi
+        
+        log "Updating application files from $SCRIPT_DIR..."
+        
+        # Update only application code, preserve .env and data
+        rsync -av --exclude='.venv' \
+                  --exclude='__pycache__' \
+                  --exclude='*.pyc' \
+                  --exclude='.git' \
+                  --exclude='data/' \
+                  --exclude='saved/' \
+                  --exclude='logs/' \
+                  --exclude='.env' \
+                  --exclude='.env.backup.*' \
+                  "$SCRIPT_DIR/" "$APP_DIR/" >> "$LOG_FILE" 2>&1
+        
+        log "Application files updated successfully"
+        
+    else
+        log "FULL INSTALL: Creating application directory at $APP_DIR..."
+        mkdir -p "$APP_DIR"
+        
+        log "Copying application files from $SCRIPT_DIR..."
+        
+        # Copy all necessary files
+        rsync -av --exclude='.venv' \
+                  --exclude='__pycache__' \
+                  --exclude='*.pyc' \
+                  --exclude='.git' \
+                  --exclude='data/' \
+                  --exclude='saved/' \
+                  --exclude='.env' \
+                  "$SCRIPT_DIR/" "$APP_DIR/" >> "$LOG_FILE" 2>&1
+        
+        # Create necessary directories
+        mkdir -p "$APP_DIR/data"
+        mkdir -p "$APP_DIR/saved"
+        mkdir -p "$APP_DIR/logs"
+        
+        log "Application files copied successfully"
+    fi
     
     # Set ownership immediately so pcornet user can create venv
     log "Setting ownership to $APP_USER..."
     chown -R "$APP_USER:$APP_USER" "$APP_DIR"
-    
-    log "Application files copied successfully"
 }
 
 ################################################################################
@@ -249,21 +331,47 @@ setup_python_environment() {
         error "requirements.txt not found in $APP_DIR"
     fi
     
-    log "Creating virtual environment..."
-    if sudo -u "$APP_USER" python3 -m venv "$APP_DIR/.venv"; then
-        log "Virtual environment created successfully"
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        log "PATCH MODE: Updating Python dependencies..."
+        
+        if [ ! -d "$APP_DIR/.venv" ]; then
+            warn "Virtual environment not found. Creating new one..."
+            if sudo -u "$APP_USER" python3 -m venv "$APP_DIR/.venv"; then
+                log "Virtual environment created successfully"
+            else
+                error "Failed to create virtual environment. Check if python3-venv is installed."
+            fi
+        else
+            log "Using existing virtual environment"
+        fi
+        
+        log "Upgrading pip..."
+        sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install --upgrade pip" >> "$LOG_FILE" 2>&1
+        
+        log "Updating Python dependencies..."
+        if sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install -r requirements.txt --upgrade" >> "$LOG_FILE" 2>&1; then
+            log "Python dependencies updated successfully"
+        else
+            error "Failed to update Python dependencies. Check $LOG_FILE for details."
+        fi
+        
     else
-        error "Failed to create virtual environment. Check if python3-venv is installed."
-    fi
-    
-    log "Upgrading pip..."
-    sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install --upgrade pip" >> "$LOG_FILE" 2>&1
-    
-    log "Installing Python dependencies..."
-    if sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install -r requirements.txt" >> "$LOG_FILE" 2>&1; then
-        log "Python dependencies installed successfully"
-    else
-        error "Failed to install Python dependencies. Check $LOG_FILE for details."
+        log "Creating virtual environment..."
+        if sudo -u "$APP_USER" python3 -m venv "$APP_DIR/.venv"; then
+            log "Virtual environment created successfully"
+        else
+            error "Failed to create virtual environment. Check if python3-venv is installed."
+        fi
+        
+        log "Upgrading pip..."
+        sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install --upgrade pip" >> "$LOG_FILE" 2>&1
+        
+        log "Installing Python dependencies..."
+        if sudo -u "$APP_USER" bash -c "cd $APP_DIR && source .venv/bin/activate && pip install -r requirements.txt" >> "$LOG_FILE" 2>&1; then
+            log "Python dependencies installed successfully"
+        else
+            error "Failed to install Python dependencies. Check $LOG_FILE for details."
+        fi
     fi
     
     log "Python environment configured successfully"
@@ -278,12 +386,13 @@ configure_environment() {
     
     ENV_FILE="$APP_DIR/.env"
     
-    if [ -f "$ENV_FILE" ]; then
-        log "Found existing .env file"
-        warn "Please verify your Azure credentials in: $ENV_FILE"
-    else
-        log "Creating template .env file..."
-        cat > "$ENV_FILE" << 'EOF'
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        if [ -f "$ENV_FILE" ]; then
+            log "PATCH MODE: Preserving existing .env file"
+            log "Current .env location: $ENV_FILE"
+        else
+            warn "No .env file found. Creating template..."
+            cat > "$ENV_FILE" << 'EOF'
 # Azure OpenAI Credentials
 AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/"
 AZURE_OPENAI_API_KEY="your-openai-api-key"
@@ -295,8 +404,29 @@ AZURE_AI_SEARCH_ENDPOINT="https://your-search-service-name.search.windows.net"
 AZURE_AI_SEARCH_API_KEY="your-search-admin-or-query-key"
 AZURE_AI_SEARCH_INDEX="pcornet-icd-index"
 EOF
-        warn "Created template .env file at: $ENV_FILE"
-        warn "You MUST edit this file with your actual Azure credentials before starting the service!"
+            warn "Created template .env file at: $ENV_FILE"
+        fi
+    else
+        if [ -f "$ENV_FILE" ]; then
+            log "Found existing .env file"
+            warn "Please verify your Azure credentials in: $ENV_FILE"
+        else
+            log "Creating template .env file..."
+            cat > "$ENV_FILE" << 'EOF'
+# Azure OpenAI Credentials
+AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/"
+AZURE_OPENAI_API_KEY="your-openai-api-key"
+AZURE_OPENAI_API_VERSION="2024-05-01-preview"
+AZURE_OPENAI_CHAT_DEPLOYMENT="gpt-4o"
+
+# Azure AI Search Credentials
+AZURE_AI_SEARCH_ENDPOINT="https://your-search-service-name.search.windows.net"
+AZURE_AI_SEARCH_API_KEY="your-search-admin-or-query-key"
+AZURE_AI_SEARCH_INDEX="pcornet-icd-index"
+EOF
+            warn "Created template .env file at: $ENV_FILE"
+            warn "You MUST edit this file with your actual Azure credentials before starting the service!"
+        fi
     fi
     
     # Set permissions
@@ -342,7 +472,12 @@ EOF
 create_systemd_service() {
     section "Creating Systemd Service"
     
-    log "Creating systemd service file..."
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        log "PATCH MODE: Updating systemd service if needed..."
+    else
+        log "Creating systemd service file..."
+    fi
+    
     cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
 Description=PCORnet Multi-Agent Chat System
@@ -386,7 +521,18 @@ EOF
 configure_nginx() {
     section "Configuring Nginx Reverse Proxy"
     
-    log "Creating Nginx site configuration..."
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        if [ -f "/etc/nginx/sites-available/$NGINX_SITE_NAME" ]; then
+            log "PATCH MODE: Nginx configuration exists, preserving it..."
+            log "To update nginx config, edit: /etc/nginx/sites-available/$NGINX_SITE_NAME"
+            return 0
+        else
+            log "Nginx configuration not found. Creating default config..."
+        fi
+    else
+        log "Creating Nginx site configuration..."
+    fi
+    
     cat > "/etc/nginx/sites-available/$NGINX_SITE_NAME" << EOF
 # PCORnet Nginx Configuration
 # Port 80 - HTTP (will be used by certbot for HTTPS setup)
@@ -440,6 +586,11 @@ EOF
 
 configure_firewall() {
     section "Configuring Firewall"
+    
+    if [ "$INSTALL_MODE" = "patch" ]; then
+        log "PATCH MODE: Skipping firewall configuration (already configured)"
+        return 0
+    fi
     
     log "Configuring UFW firewall..."
     
@@ -503,7 +654,11 @@ start_service_and_show_logs() {
         
         echo ""
         echo -e "${GREEN}========================================${NC}"
-        echo -e "${GREEN}Installation Complete!${NC}"
+        if [ "$INSTALL_MODE" = "patch" ]; then
+            echo -e "${GREEN}Update/Patch Complete!${NC}"
+        else
+            echo -e "${GREEN}Installation Complete!${NC}"
+        fi
         echo -e "${GREEN}========================================${NC}"
         echo ""
         echo -e "${BLUE}Service Status:${NC}"
@@ -565,11 +720,46 @@ EOF
     mkdir -p "$(dirname "$LOG_FILE")"
     touch "$LOG_FILE"
     
+    # Parse command-line arguments
+    parse_arguments "$@"
+    
     log "Installation started at $(date)"
+    log "Mode: $INSTALL_MODE"
     
     # Pre-flight checks
     check_root
     check_ubuntu_version
+    
+    # Auto-detect existing installation if mode not explicitly set
+    if [ "$INSTALL_MODE" = "full" ] && detect_existing_installation; then
+        warn "Existing installation detected at $APP_DIR"
+        echo -e "${YELLOW}You have an existing installation.${NC}"
+        echo ""
+        echo "Options:"
+        echo "  1. Update/Patch existing installation (recommended)"
+        echo "  2. Full reinstall (will preserve .env and data)"
+        echo "  3. Cancel"
+        echo ""
+        read -p "Choose option (1-3): " -n 1 -r
+        echo ""
+        case $REPLY in
+            1)
+                INSTALL_MODE="patch"
+                log "Switching to PATCH mode"
+                ;;
+            2)
+                log "Continuing with FULL installation mode"
+                ;;
+            3)
+                log "Installation cancelled by user"
+                exit 0
+                ;;
+            *)
+                error "Invalid option"
+                ;;
+        esac
+    fi
+    
     check_python_version
     validate_required_files
     
@@ -591,4 +781,4 @@ EOF
 }
 
 # Run main installation
-main
+main "$@"

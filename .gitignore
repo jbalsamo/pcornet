@@ -50,3 +50,9 @@ htmlcov/
 # Logs
 *.log
 logs/
+
+# Backups
+*backup*.py
+*_old.py
+*.bak
+*.orig
