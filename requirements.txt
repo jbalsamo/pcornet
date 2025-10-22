@@ -9,6 +9,11 @@ pyperclip
 azure-search-documents
 openai
 
+# Memory & Embeddings
+chromadb>=0.4.18
+sentence-transformers>=2.2.2
+tiktoken>=0.5.1
+
 # Testing
 pytest
 pytest-cov

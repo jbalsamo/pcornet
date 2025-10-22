@@ -18,6 +18,7 @@ from modules.agents.concept_set_extractor_agent import ConceptSetExtractorAgent
 from modules.interactive_session import interactive_session
 from openai import AzureOpenAI
 from modules.config import CONCEPT_SET_CLASSIFICATION_PROMPT
+from modules.memory.memory_manager import memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +130,7 @@ class MasterAgent:
     def chat(self, query: str, agent_type: str = "auto", session_id: str = "default"):
         """
         Processes a chat query by routing it to the specified agent or workflow.
-        Enhanced with interactive session support and conversation history tracking.
+        Enhanced with memory system, interactive sessions, and conversation history tracking.
         """
         # Add user message to conversation history
         self.conversation_history.add_user_message(query)
@@ -139,9 +140,26 @@ class MasterAgent:
             agent_type = self._classify_agent_type(query)
             logger.info(f"📋 Agent classification: '{query}' → agent_type='{agent_type}'")
         
+        # Get relevant context from memory system
+        working_memory = self.conversation_history.get_recent_context(num_messages=10)
+        session_context = ""
+        
         # Check if there's an active session with previous ICD data
         has_session_data = self._has_active_session(session_id)
-        logger.info(f"📋 Session check: has_session_data={has_session_data}, session_id={session_id}")
+        if has_session_data:
+            session_context = self._get_session_context_string(session_id) or ""
+        
+        # Get comprehensive context from memory manager
+        memory_context = memory_manager.get_relevant_context(
+            current_query=query,
+            working_memory=working_memory,
+            session_context=session_context,
+            max_tokens=2000,
+            include_episodic=True,
+            include_semantic=True
+        )
+        
+        logger.info(f"📋 Session check: has_session_data={has_session_data}, memory_context={'available' if memory_context else 'none'}, session_id={session_id}")
         
         # For follow-up questions, use the chat agent with RAG context
         # This allows format changes like "show as table" to work with stored data
@@ -167,22 +185,30 @@ class MasterAgent:
             logger.info(f"📋 Checking follow-up: is_explicit_new_search={is_explicit_new_search}, is_concept_set={is_concept_set}")
             
             if not is_explicit_new_search and not is_concept_set:
-                logger.info(f"📋 ✅ Follow-up confirmed: Using chat agent with RAG context from session")
-                # Get RAG context from session
-                context_str = self._get_session_context_string(session_id)
-                if context_str:
-                    context_lines = context_str.count('\n') + 1
-                    num_codes = len(interactive_session.get_context(session_id).current_data)
-                    logger.info(f"📋 State: Retrieved {num_codes} codes ({context_lines} lines) from session")
+                logger.info(f"📋 ✅ Follow-up confirmed: Using chat agent with comprehensive memory context")
+                
+                # Use comprehensive memory context (includes session data, past conversations, facts)
+                context_to_use = memory_context if memory_context else session_context
+                
+                if context_to_use:
+                    logger.info(f"📋 State: Using memory context ({len(context_to_use)} chars)")
                     
-                    # Use chat agent with RAG context in system message
-                    response = self.chat_agent.process(query, context=context_str)
-                    logger.info(f"📋 State: Response generated ({len(response)} chars) using session context with {num_codes} codes")
+                    # Use chat agent with comprehensive context
+                    response = self.chat_agent.process(query, context=context_to_use)
+                    logger.info(f"📋 State: Response generated ({len(response)} chars) using memory system")
                     self.conversation_history.add_assistant_message(response, agent_type="chat")
+                    
+                    # Store conversation turn in memory
+                    memory_manager.process_conversation_turn(
+                        session_id=session_id,
+                        user_query=query,
+                        assistant_response=response
+                    )
+                    
                     return response
                 else:
-                    logger.warning(f"📋 Follow-up detected but no context available in session {session_id}")
-                    # Continue to standard routing but it will still check for context
+                    logger.warning(f"📋 Follow-up detected but no context available")
+                    # Continue to standard routing
         
         # Initialize state
         state = MasterAgentState(user_input=query, agent_type=agent_type, context="", response="", error="")
@@ -195,21 +221,29 @@ class MasterAgent:
             self.conversation_history.add_assistant_message(response, agent_type="concept_set")
             return response
 
-        # Enhanced routing with session support
+        # Enhanced routing with session support and memory
         logger.info(f"📋 Routing to '{agent_type}' agent (standard query path - NOT follow-up)")
         if agent_type == "chat":
-            # Include session context if available (RAG data from previous searches)
-            context_str = self._get_session_context_string(session_id) if has_session_data else None
-            if context_str:
-                session_ctx = interactive_session.get_context(session_id)
-                num_codes = len(session_ctx.current_data) if session_ctx else 0
-                context_lines = context_str.count('\n') + 1
-                logger.info(f"📋 State: Passing {num_codes} codes ({context_lines} lines) as context to chat agent")
+            # Use comprehensive memory context (includes session data, episodic memory, facts)
+            context_to_use = memory_context if memory_context else (session_context if has_session_data else None)
+            
+            if context_to_use:
+                logger.info(f"📋 State: Using memory context ({len(context_to_use)} chars) for chat agent")
             else:
-                logger.info(f"📋 State: ⚠️ No session context available, using chat agent without RAG context")
-            response = self.chat_agent.process(query, context=context_str)
-            logger.info(f"📋 State: Chat response generated ({len(response)} chars) {'WITH' if context_str else 'WITHOUT'} context")
+                logger.info(f"📋 State: ⚠️ No context available, using chat agent without memory")
+            
+            response = self.chat_agent.process(query, context=context_to_use)
+            logger.info(f"📋 State: Chat response generated ({len(response)} chars) {'WITH' if context_to_use else 'WITHOUT'} context")
             self.conversation_history.add_assistant_message(response, agent_type="chat")
+            
+            # Store conversation turn in memory system
+            memory_manager.process_conversation_turn(
+                session_id=session_id,
+                user_query=query,
+                assistant_response=response,
+                metadata={'agent_type': 'chat'}
+            )
+            
             return response
         elif agent_type == "icd":
             # Use interactive processing for ICD queries
@@ -217,6 +251,15 @@ class MasterAgent:
             response = self._chat_icd_interactive(query, session_id)
             logger.info(f"📋 State: ICD response generated ({len(response)} chars), stored in session")
             self.conversation_history.add_assistant_message(response, agent_type="icd")
+            
+            # Store ICD conversation turn in memory system
+            memory_manager.process_conversation_turn(
+                session_id=session_id,
+                user_query=query,
+                assistant_response=response,
+                metadata={'agent_type': 'icd', 'has_codes': True}
+            )
+            
             return response
         else:
             response = f"❌ Unknown agent type: {agent_type}"
@@ -416,6 +459,23 @@ class MasterAgent:
                 "agent_usage": agent_usage
             }
         }
+    
+    def get_memory_stats(self):
+        """
+        Get statistics about the memory system.
+        
+        Returns:
+            dict: Memory system statistics including episodic and semantic memory.
+        """
+        try:
+            return memory_manager.get_memory_stats()
+        except Exception as e:
+            logger.error(f"Failed to get memory stats: {e}")
+            return {
+                'error': str(e),
+                'episodic_memory': {'total_episodes': 0},
+                'semantic_memory': {'total_facts': 0}
+            }
     
     def save_conversation_history(self):
         """

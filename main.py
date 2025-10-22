@@ -199,6 +199,9 @@ def main():
     if 'show_history_stats' not in st.session_state:
         st.session_state.show_history_stats = False
     
+    if 'show_memory_stats' not in st.session_state:
+        st.session_state.show_memory_stats = False
+    
     # Initialize session_id for interactive sessions (persistent per Streamlit session)
     if 'interactive_session_id' not in st.session_state:
         import uuid
@@ -244,6 +247,30 @@ def main():
             st.text(f"Total Messages: {stats['total_messages']}")
             st.text(f"User Messages: {stats['user_messages']}")
             st.text(f"Assistant Messages: {stats['assistant_messages']}")
+        
+        st.divider()
+        
+        # Memory stats with collapse button
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.header("🧠 Memory Stats")
+        with col2:
+            if st.button("▼" if st.session_state.show_memory_stats else "▶", key="toggle_memory_stats"):
+                st.session_state.show_memory_stats = not st.session_state.show_memory_stats
+        
+        if st.session_state.show_memory_stats:
+            try:
+                memory_stats = st.session_state.agent.get_memory_stats()
+                
+                episodic = memory_stats.get('episodic_memory', {})
+                st.text(f"Past Conversations: {episodic.get('total_episodes', 0)}")
+                
+                semantic = memory_stats.get('semantic_memory', {})
+                st.text(f"Facts Learned: {semantic.get('total_facts', 0)}")
+                
+                st.text(f"Auto-Extract: {'✓' if memory_stats.get('auto_fact_extraction', False) else '✗'}")
+            except Exception as e:
+                st.warning("Memory stats unavailable (first run)")
         
         st.divider()
         
