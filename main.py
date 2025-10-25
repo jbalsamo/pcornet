@@ -264,18 +264,20 @@ def main():
         [data-testid="stChatInput"] {
             background-color: #0e1117 !important;
         }
-        [data-testid="stBottom"] {
-            background-color: #0e1117 !important;
-        }
         /* Chat input container - dark mode */
         #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
             background-color: #1e2130 !important;
         }
-        .st-emotion-cache-usj992 {
+        /* Fixed chat input area - stable selectors for dark mode */
+        [data-testid="stBottom"],
+        [data-testid="stChatInputContainer"],
+        .stChatFloatingInputContainer {
             background-color: #1e2130 !important;
+            color: #fafafa !important;
         }
-        .st-emotion-cache-usj992,
-        .st-emotion-cache-usj992 * {
+        [data-testid="stBottom"] *,
+        [data-testid="stChatInputContainer"] *,
+        .stChatFloatingInputContainer * {
             color: #fafafa !important;
         }
         /* Buttons */
@@ -465,18 +467,20 @@ def main():
         [data-testid="stChatInput"] {
             background-color: #ffffff !important;
         }
-        [data-testid="stBottom"] {
-            background-color: #ffffff !important;
-        }
         /* Chat input container - light mode */
         #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
             background-color: #f3f4f6 !important;
         }
-        .st-emotion-cache-usj992 {
+        /* Fixed chat input area - stable selectors for light mode */
+        [data-testid="stBottom"],
+        [data-testid="stChatInputContainer"],
+        .stChatFloatingInputContainer {
             background-color: rgb(230, 234, 241) !important;
+            color: #262730 !important;
         }
-        .st-emotion-cache-usj992,
-        .st-emotion-cache-usj992 * {
+        [data-testid="stBottom"] *,
+        [data-testid="stChatInputContainer"] *,
+        .stChatFloatingInputContainer * {
             color: #262730 !important;
         }
         /* Buttons */
@@ -724,8 +728,10 @@ def main():
     #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
         padding: 1em !important;
     }
-    /* Fixed chat input container */
-    .st-emotion-cache-usj992 {
+    /* Fixed chat input container - stable selectors */
+    [data-testid="stBottom"],
+    [data-testid="stChatInputContainer"],
+    .stChatFloatingInputContainer {
         position: fixed !important;
         bottom: 0px !important;
         padding-bottom: 1rem !important;
