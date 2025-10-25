@@ -10,7 +10,19 @@ health check to verify connections to external services on startup.
 
 import os
 import logging
+import warnings
 from dotenv import load_dotenv
+
+# Suppress torch warnings about __path__._path
+warnings.filterwarnings('ignore', message='.*torch.classes.*')
+warnings.filterwarnings('ignore', message='.*Tried to instantiate class.*')
+
+# Configure langchain globals to use new API
+try:
+    from langchain import globals as langchain_globals
+    langchain_globals.set_verbose(False)
+except ImportError:
+    pass
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

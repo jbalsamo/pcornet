@@ -359,5 +359,1182 @@
     "created_at": "2025-10-22T15:38:09.296402",
     "access_count": 0,
     "last_accessed": null
+  },
+  "fact_20251023_151834_266652": {
+    "fact_type": "context",
+    "content": "All code values and mappings referenced are sourced exclusively from the user's provided ICD-10 code dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10",
+      "dataset"
+    ],
+    "id": "fact_20251023_151834_266652",
+    "created_at": "2025-10-23T15:18:34.266693",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251023_151834_269964": {
+    "fact_type": "user_preference",
+    "content": "User expects the assistant to use only the codes and mappings present in their supplied dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10",
+      "SNOMED",
+      "OHDSI"
+    ],
+    "id": "fact_20251023_151834_269964",
+    "created_at": "2025-10-23T15:18:34.269986",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251023_151834_270972": {
+    "fact_type": "domain_knowledge",
+    "content": "SNOMED codes are mapped using the 'OHDSI' field in the provided dataset.",
+    "confidence": "high",
+    "entities": [
+      "SNOMED",
+      "OHDSI",
+      "ICD-10"
+    ],
+    "id": "fact_20251023_151834_270972",
+    "created_at": "2025-10-23T15:18:34.270991",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251023_151834_272770": {
+    "fact_type": "reference",
+    "content": "If a code or item is not present in the dataset, the assistant will state it is not available.",
+    "confidence": "high",
+    "entities": [
+      "TD1D",
+      "TD2D",
+      "ICD-10"
+    ],
+    "id": "fact_20251023_151834_272770",
+    "created_at": "2025-10-23T15:18:34.272817",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_173954_913231": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_173954_913231",
+    "created_at": "2025-10-24T17:39:54.913262",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_173954_916340": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_173954_916340",
+    "created_at": "2025-10-24T17:39:54.916360",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174004_338933": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174004_338933",
+    "created_at": "2025-10-24T17:40:04.338985",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174004_340628": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174004_340628",
+    "created_at": "2025-10-24T17:40:04.340657",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174013_061029": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174013_061029",
+    "created_at": "2025-10-24T17:40:13.061086",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174013_063574": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174013_063574",
+    "created_at": "2025-10-24T17:40:13.063604",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174020_982741": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174020_982741",
+    "created_at": "2025-10-24T17:40:20.982815",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174020_985633": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174020_985633",
+    "created_at": "2025-10-24T17:40:20.985680",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174029_026038": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174029_026038",
+    "created_at": "2025-10-24T17:40:29.026105",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174029_029145": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174029_029145",
+    "created_at": "2025-10-24T17:40:29.029197",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174038_057482": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174038_057482",
+    "created_at": "2025-10-24T17:40:38.057513",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174038_058875": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174038_058875",
+    "created_at": "2025-10-24T17:40:38.058895",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174047_342604": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174047_342604",
+    "created_at": "2025-10-24T17:40:47.342672",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174047_346108": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174047_346108",
+    "created_at": "2025-10-24T17:40:47.346157",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174055_899057": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174055_899057",
+    "created_at": "2025-10-24T17:40:55.899118",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174055_904948": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174055_904948",
+    "created_at": "2025-10-24T17:40:55.904988",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174103_628979": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174103_628979",
+    "created_at": "2025-10-24T17:41:03.629044",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174103_632485": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174103_632485",
+    "created_at": "2025-10-24T17:41:03.632533",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174112_325322": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174112_325322",
+    "created_at": "2025-10-24T17:41:12.325367",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174112_327746": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174112_327746",
+    "created_at": "2025-10-24T17:41:12.327785",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174119_996215": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174119_996215",
+    "created_at": "2025-10-24T17:41:19.996226",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174119_996702": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174119_996702",
+    "created_at": "2025-10-24T17:41:19.996708",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174127_746134": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174127_746134",
+    "created_at": "2025-10-24T17:41:27.746185",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174127_749786": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174127_749786",
+    "created_at": "2025-10-24T17:41:27.749874",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174135_451185": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174135_451185",
+    "created_at": "2025-10-24T17:41:35.451234",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174135_453074": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174135_453074",
+    "created_at": "2025-10-24T17:41:35.453111",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174143_128539": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174143_128539",
+    "created_at": "2025-10-24T17:41:43.128605",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174143_132103": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174143_132103",
+    "created_at": "2025-10-24T17:41:43.132149",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174151_736053": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174151_736053",
+    "created_at": "2025-10-24T17:41:51.736108",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174151_739312": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174151_739312",
+    "created_at": "2025-10-24T17:41:51.739357",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174159_334238": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174159_334238",
+    "created_at": "2025-10-24T17:41:59.334302",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174159_337324": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174159_337324",
+    "created_at": "2025-10-24T17:41:59.337366",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174208_295755": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174208_295755",
+    "created_at": "2025-10-24T17:42:08.295822",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174208_299499": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174208_299499",
+    "created_at": "2025-10-24T17:42:08.299548",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174216_793144": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174216_793144",
+    "created_at": "2025-10-24T17:42:16.793197",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174216_795128": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174216_795128",
+    "created_at": "2025-10-24T17:42:16.795161",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174224_679449": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174224_679449",
+    "created_at": "2025-10-24T17:42:24.679522",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174224_683307": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174224_683307",
+    "created_at": "2025-10-24T17:42:24.683352",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174233_179691": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174233_179691",
+    "created_at": "2025-10-24T17:42:33.179761",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174233_183803": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174233_183803",
+    "created_at": "2025-10-24T17:42:33.183854",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174240_560878": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174240_560878",
+    "created_at": "2025-10-24T17:42:40.560958",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174240_564625": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174240_564625",
+    "created_at": "2025-10-24T17:42:40.564673",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174248_334516": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174248_334516",
+    "created_at": "2025-10-24T17:42:48.334584",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174248_338470": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174248_338470",
+    "created_at": "2025-10-24T17:42:48.338518",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174258_331292": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174258_331292",
+    "created_at": "2025-10-24T17:42:58.331361",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174258_335581": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174258_335581",
+    "created_at": "2025-10-24T17:42:58.335632",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174307_346696": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174307_346696",
+    "created_at": "2025-10-24T17:43:07.346734",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174307_348910": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174307_348910",
+    "created_at": "2025-10-24T17:43:07.348965",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174317_651140": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174317_651140",
+    "created_at": "2025-10-24T17:43:17.651210",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174317_655019": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174317_655019",
+    "created_at": "2025-10-24T17:43:17.655058",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174326_835922": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174326_835922",
+    "created_at": "2025-10-24T17:43:26.835993",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174326_840453": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174326_840453",
+    "created_at": "2025-10-24T17:43:26.840503",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174336_104903": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174336_104903",
+    "created_at": "2025-10-24T17:43:36.104915",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174336_105537": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174336_105537",
+    "created_at": "2025-10-24T17:43:36.105543",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174345_471601": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174345_471601",
+    "created_at": "2025-10-24T17:43:45.471667",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174345_476219": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174345_476219",
+    "created_at": "2025-10-24T17:43:45.476278",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174354_070702": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174354_070702",
+    "created_at": "2025-10-24T17:43:54.070715",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174354_071357": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174354_071357",
+    "created_at": "2025-10-24T17:43:54.071363",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174402_469239": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174402_469239",
+    "created_at": "2025-10-24T17:44:02.469283",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174402_472769": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174402_472769",
+    "created_at": "2025-10-24T17:44:02.472813",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174411_886840": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174411_886840",
+    "created_at": "2025-10-24T17:44:11.886895",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174411_891934": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174411_891934",
+    "created_at": "2025-10-24T17:44:11.891972",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174421_302835": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174421_302835",
+    "created_at": "2025-10-24T17:44:21.302860",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174421_305192": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174421_305192",
+    "created_at": "2025-10-24T17:44:21.305213",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174433_303131": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174433_303131",
+    "created_at": "2025-10-24T17:44:33.303201",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174433_308486": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174433_308486",
+    "created_at": "2025-10-24T17:44:33.308529",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174442_736642": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174442_736642",
+    "created_at": "2025-10-24T17:44:42.736672",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174442_739051": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174442_739051",
+    "created_at": "2025-10-24T17:44:42.739074",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174452_338327": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174452_338327",
+    "created_at": "2025-10-24T17:44:52.338357",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174452_341986": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174452_341986",
+    "created_at": "2025-10-24T17:44:52.342013",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174502_079280": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174502_079280",
+    "created_at": "2025-10-24T17:45:02.079292",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174502_079982": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174502_079982",
+    "created_at": "2025-10-24T17:45:02.079988",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174511_528667": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174511_528667",
+    "created_at": "2025-10-24T17:45:11.528735",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174511_533938": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174511_533938",
+    "created_at": "2025-10-24T17:45:11.533978",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174520_597745": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174520_597745",
+    "created_at": "2025-10-24T17:45:20.597775",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174520_599938": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174520_599938",
+    "created_at": "2025-10-24T17:45:20.599956",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174530_394555": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174530_394555",
+    "created_at": "2025-10-24T17:45:30.394618",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174530_399894": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174530_399894",
+    "created_at": "2025-10-24T17:45:30.399943",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174539_543173": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174539_543173",
+    "created_at": "2025-10-24T17:45:39.543214",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174539_546660": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174539_546660",
+    "created_at": "2025-10-24T17:45:39.546709",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174548_449412": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174548_449412",
+    "created_at": "2025-10-24T17:45:48.449457",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174548_453488": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174548_453488",
+    "created_at": "2025-10-24T17:45:48.453525",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174557_464295": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174557_464295",
+    "created_at": "2025-10-24T17:45:57.464363",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174557_469423": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174557_469423",
+    "created_at": "2025-10-24T17:45:57.469461",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174606_578146": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174606_578146",
+    "created_at": "2025-10-24T17:46:06.578187",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174606_582592": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174606_582592",
+    "created_at": "2025-10-24T17:46:06.582630",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174614_562703": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174614_562703",
+    "created_at": "2025-10-24T17:46:14.562744",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174614_567068": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174614_567068",
+    "created_at": "2025-10-24T17:46:14.567106",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174624_087663": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174624_087663",
+    "created_at": "2025-10-24T17:46:24.087718",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174624_091879": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174624_091879",
+    "created_at": "2025-10-24T17:46:24.091915",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174632_380599": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174632_380599",
+    "created_at": "2025-10-24T17:46:32.380641",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174632_385073": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174632_385073",
+    "created_at": "2025-10-24T17:46:32.385105",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174639_898480": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174639_898480",
+    "created_at": "2025-10-24T17:46:39.898544",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174639_901871": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174639_901871",
+    "created_at": "2025-10-24T17:46:39.901906",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174647_427417": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174647_427417",
+    "created_at": "2025-10-24T17:46:47.427458",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174647_430833": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174647_430833",
+    "created_at": "2025-10-24T17:46:47.430869",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174656_008352": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174656_008352",
+    "created_at": "2025-10-24T17:46:56.008385",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174656_011946": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174656_011946",
+    "created_at": "2025-10-24T17:46:56.011984",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174703_528600": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174703_528600",
+    "created_at": "2025-10-24T17:47:03.528661",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174703_533401": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174703_533401",
+    "created_at": "2025-10-24T17:47:03.533441",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174711_496203": {
+    "fact_type": "user_preference",
+    "content": "User prefers lists to be limited to the top 3 entries.",
+    "confidence": "high",
+    "entities": [],
+    "id": "fact_20251024_174711_496203",
+    "created_at": "2025-10-24T17:47:11.496253",
+    "access_count": 0,
+    "last_accessed": null
+  },
+  "fact_20251024_174711_501275": {
+    "fact_type": "context",
+    "content": "Only one ICD-10 code is available in the current dataset.",
+    "confidence": "high",
+    "entities": [
+      "ICD-10"
+    ],
+    "id": "fact_20251024_174711_501275",
+    "created_at": "2025-10-24T17:47:11.501307",
+    "access_count": 0,
+    "last_accessed": null
   }
 }

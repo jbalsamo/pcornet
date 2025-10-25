@@ -11,7 +11,14 @@ requests.
 import os
 import logging
 import json
+import warnings
 from typing import TypedDict
+
+# Suppress torch warnings before importing memory modules
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', message='.*torch.classes.*')
+warnings.filterwarnings('ignore', message='.*Tried to instantiate class.*')
+
 from modules.agents.chat_agent import ChatAgent
 from modules.agents.icd_agent import IcdAgent
 from modules.agents.concept_set_extractor_agent import ConceptSetExtractorAgent

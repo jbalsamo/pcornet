@@ -6,8 +6,14 @@ by semantic similarity, enabling the agent to recall relevant past interactions.
 """
 import logging
 import os
+import warnings
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+
+# Suppress torch warnings before importing chromadb
+warnings.filterwarnings('ignore', message='.*torch.classes.*')
+warnings.filterwarnings('ignore', message='.*Tried to instantiate class.*')
+
 import chromadb
 from chromadb.config import Settings
 from .embeddings import embedding_service

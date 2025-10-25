@@ -8,6 +8,13 @@ Provides:
 - Memory management: Orchestration of all memory systems
 """
 
+import warnings
+
+# Suppress torch warnings before importing any memory components
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', message='.*torch.classes.*')
+warnings.filterwarnings('ignore', message='.*Tried to instantiate class.*')
+
 from .embeddings import embedding_service, EmbeddingService
 from .episodic_memory import episodic_memory, EpisodicMemory
 from .semantic_memory import semantic_memory, SemanticMemory

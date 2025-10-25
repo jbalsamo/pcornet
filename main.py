@@ -1,13 +1,54 @@
 """
 Main application entry point for the Azure OpenAI Chat Agent System.
 """
+import os
+import sys
+
+# Set environment variables FIRST before any other imports
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYTHONWARNINGS'] = 'ignore'
+
+import warnings
+
+# Aggressively suppress ALL warnings
+warnings.simplefilter('ignore')
+warnings.filterwarnings('ignore')
+warnings.filterwarnings('ignore', category=Warning)
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
 import logging
 import argparse
 import streamlit as st
 import json
-import os
 import glob
 from datetime import datetime
+
+# Custom filter to block torch.classes warnings
+class TorchWarningFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return not ('torch.classes' in message or '__path__._path' in message)
+
+# Suppress logging from specific noisy modules
+for logger_name in ['torch', 'sentence_transformers', 'transformers', 'chromadb', 'streamlit']:
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.ERROR)
+    logger.addFilter(TorchWarningFilter())
+
+# Also add filter to root logger
+logging.getLogger().addFilter(TorchWarningFilter())
+
+# Configure langchain globals to suppress deprecation warnings
+try:
+    from langchain import globals as langchain_globals
+    langchain_globals.set_verbose(False)
+except ImportError:
+    # Fallback for older versions of langchain
+    pass
+
 from modules.master_agent import MasterAgent
 from modules.security import InputValidationException, RateLimitException
 from modules.interactive_session import interactive_session
@@ -193,14 +234,8 @@ def main():
     if 'delete_confirm_chat' not in st.session_state:
         st.session_state.delete_confirm_chat = None
     
-    if 'show_system_info' not in st.session_state:
-        st.session_state.show_system_info = False
-    
-    if 'show_history_stats' not in st.session_state:
-        st.session_state.show_history_stats = False
-    
-    if 'show_memory_stats' not in st.session_state:
-        st.session_state.show_memory_stats = False
+    if 'theme' not in st.session_state:
+        st.session_state.theme = 'light'
     
     # Initialize session_id for interactive sessions (persistent per Streamlit session)
     if 'interactive_session_id' not in st.session_state:
@@ -208,74 +243,665 @@ def main():
         st.session_state.interactive_session_id = f"streamlit_{uuid.uuid4().hex[:8]}"
         logger.info(f"Created new interactive session ID: {st.session_state.interactive_session_id}")
     
-    # Title
-    st.title("🤖 PCORNET Concept Set Tool")
-    st.divider()
+    # Apply custom CSS for theme styling (colors only, no layout changes)
+    if st.session_state.theme == 'dark':
+        theme_css = """
+        <style>
+        /* Dark mode */
+        .stApp {
+            background-color: #0e1117 !important;
+            color: #fafafa !important;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #1a1d29 !important;
+        }
+        /* Chat input - dark mode (colors only) */
+        [data-testid="stChatInput"] textarea {
+            background-color: #1e2130 !important;
+            color: #fafafa !important;
+            caret-color: #fafafa !important;
+        }
+        [data-testid="stChatInput"] {
+            background-color: #0e1117 !important;
+        }
+        [data-testid="stBottom"] {
+            background-color: #0e1117 !important;
+        }
+        /* Chat input container - dark mode */
+        #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
+            background-color: #1e2130 !important;
+        }
+        .st-emotion-cache-usj992 {
+            background-color: #1e2130 !important;
+        }
+        .st-emotion-cache-usj992,
+        .st-emotion-cache-usj992 * {
+            color: #fafafa !important;
+        }
+        /* Buttons */
+        .stButton > button {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border: 2px solid #404050 !important;
+        }
+        .stButton > button:hover {
+            background-color: #363740 !important;
+            border-color: #606070 !important;
+        }
+        .stButton > button[kind="primary"] {
+            background-color: #4a5568 !important;
+            border-color: #5a6578 !important;
+        }
+        .stButton > button[kind="primary"]:hover {
+            background-color: #5a6578 !important;
+            border-color: #6a7588 !important;
+        }
+        /* Text inputs */
+        .stTextInput > div > div > input {
+            background-color: #1e2130 !important;
+            color: #fafafa !important;
+            caret-color: #fafafa !important;
+            border: 2px solid #4a5568 !important;
+        }
+        /* Sidebar text visibility */
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label {
+            color: #e5e7eb !important;
+        }
+        [data-testid="stSidebar"] h3,
+        [data-testid="stSidebar"] h2 {
+            color: #fafafa !important;
+        }
+        /* Theme toggle buttons */
+        .stButton button[key="light_mode"],
+        .stButton button[key="dark_mode"] {
+            width: 45px !important;
+            min-width: 45px !important;
+            height: 45px !important;
+            padding: 0.2em !important;
+            font-size: 20px !important;
+        }
+        .stButton button[key="light_mode"] {
+            background: #e5e7eb !important;
+            color: #1a202c !important;
+            border: 2px solid #d1d5db !important;
+        }
+        .stButton button[key="dark_mode"] {
+            background: #1a1d29 !important;
+            color: #fafafa !important;
+            border: 2px solid #2d3142 !important;
+        }
+        .stButton button[key="light_mode"][kind="primary"] {
+            background: #e5e7eb !important;
+            color: #1a202c !important;
+            border: 4px solid #3b82f6 !important;
+        }
+        .stButton button[key="dark_mode"][kind="primary"] {
+            background: #1a1d29 !important;
+            color: #fafafa !important;
+            border: 4px solid #3b82f6 !important;
+        }
+        /* Delete buttons */
+        button[key^="delete_"],
+        button[key*="delete"] {
+            background: #374151 !important;
+            color: #ef4444 !important;
+            border: 2px solid #4b5563 !important;
+        }
+        button[key^="delete_"]:hover,
+        button[key*="delete"]:hover {
+            background: #4b5563 !important;
+            color: #f87171 !important;
+        }
+        /* Previous chat buttons */
+        button[key^="load_"] {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border: 2px solid #4a5568 !important;
+            text-align: left !important;
+        }
+        button[key^="load_"]:hover {
+            background-color: #363740 !important;
+        }
+        /* Info/Alert boxes */
+        .stAlert p,
+        [data-testid="stAlert"] p,
+        [data-testid="stNotification"] p,
+        div[data-baseweb="notification"] p {
+            color: #fafafa !important;
+            font-weight: 500 !important;
+        }
+        /* Chat messages - dark mode */
+        .stChatMessage {
+            background-color: #1e2130 !important;
+            border: 2px solid #4a5568 !important;
+            border-radius: 16px !important;
+        }
+        .stChatMessage ul,
+        .stChatMessage ol,
+        .stChatMessage li,
+        .stChatMessage p {
+            color: #e5e7eb !important;
+        }
+        /* Code blocks - dark mode */
+        .stChatMessage code {
+            background-color: #262730 !important;
+            color: #f0f2f6 !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+        }
+        /* Top bar area - dark mode */
+        [data-testid="stHeader"] {
+            background-color: #0e1117 !important;
+        }
+        [data-testid="stToolbar"] {
+            background-color: #0e1117 !important;
+        }
+        /* Title area */
+        section.main > div:first-child {
+            background-color: #0e1117 !important;
+        }
+        /* Main content area background */
+        section.main {
+            background-color: #0e1117 !important;
+        }
+        /* Headers */
+        h1, h2, h3 {
+            color: #fafafa !important;
+        }
+        /* Reduce sidebar padding to minimum */
+        [data-testid="stSidebar"] .block-container {
+            padding: 0.25em !important;
+        }
+        [data-testid="stSidebar"] {
+            padding: 0.25em !important;
+        }
+        section[data-testid="stSidebar"] > div {
+            padding: 0.25em !important;
+        }
+        /* Minimize main content area padding and margins */
+        section.main.st-emotion-cache-uf99v8 > div.block-container,
+        div.block-container.st-emotion-cache-z5fcl4 {
+            padding-top: 0.5em !important;
+            padding-bottom: 0.5em !important;
+            padding-left: 3em !important;
+            padding-right: 3em !important;
+            margin: 0 !important;
+        }
+        /* Table text visibility */
+        table,
+        table thead,
+        table tbody,
+        table tr,
+        table td,
+        table th {
+            color: #e5e7eb !important;
+        }
+        table,
+        table td,
+        table th {
+            border-color: #e5e7eb !important;
+        }
+        </style>
+        """
+    else:
+        theme_css = """
+        <style>
+        /* Light mode */
+        .stApp {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #f8f9fa !important;
+        }
+        /* Chat input - light mode (colors only) */
+        [data-testid="stChatInput"] textarea {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+            caret-color: #262730 !important;
+        }
+        [data-testid="stChatInput"] {
+            background-color: #ffffff !important;
+        }
+        [data-testid="stBottom"] {
+            background-color: #ffffff !important;
+        }
+        /* Chat input container - light mode */
+        #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
+            background-color: #f3f4f6 !important;
+        }
+        .st-emotion-cache-usj992 {
+            background-color: rgb(230, 234, 241) !important;
+        }
+        .st-emotion-cache-usj992,
+        .st-emotion-cache-usj992 * {
+            color: #262730 !important;
+        }
+        /* Buttons */
+        .stButton > button {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+            border: 2px solid #d0d5db !important;
+        }
+        .stButton > button:hover {
+            background-color: #f0f2f6 !important;
+            border-color: #b0b5bb !important;
+        }
+        .stButton > button[kind="primary"] {
+            background-color: #4299e1 !important;
+            color: #ffffff !important;
+            border-color: #3182ce !important;
+        }
+        .stButton > button[kind="primary"]:hover {
+            background-color: #3182ce !important;
+            border-color: #2c5aa0 !important;
+        }
+        /* Text inputs */
+        .stTextInput > div > div > input {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+            caret-color: #262730 !important;
+            border: 2px solid #9ca3af !important;
+        }
+        /* Sidebar text visibility */
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label {
+            color: #374151 !important;
+        }
+        [data-testid="stSidebar"] h3,
+        [data-testid="stSidebar"] h2 {
+            color: #1a202c !important;
+        }
+        /* Theme toggle buttons */
+        .stButton button[key="light_mode"],
+        .stButton button[key="dark_mode"] {
+            width: 45px !important;
+            min-width: 45px !important;
+            height: 45px !important;
+            padding: 0.2em !important;
+            font-size: 20px !important;
+        }
+        .stButton button[key="light_mode"] {
+            background: #e5e7eb !important;
+            color: #1a202c !important;
+            border: 2px solid #d1d5db !important;
+        }
+        .stButton button[key="dark_mode"] {
+            background: #1a1d29 !important;
+            color: #fafafa !important;
+            border: 2px solid #2d3142 !important;
+        }
+        .stButton button[key="light_mode"][kind="primary"] {
+            background: #e5e7eb !important;
+            color: #1a202c !important;
+            border: 4px solid #3b82f6 !important;
+        }
+        .stButton button[key="dark_mode"][kind="primary"] {
+            background: #1a1d29 !important;
+            color: #fafafa !important;
+            border: 4px solid #3b82f6 !important;
+        }
+        /* Delete buttons */
+        button[key^="delete_"],
+        button[key*="delete"] {
+            background: #ffffff !important;
+            color: #dc2626 !important;
+            border: 2px solid #fca5a5 !important;
+        }
+        button[key^="delete_"]:hover,
+        button[key*="delete"]:hover {
+            background: #f3f4f6 !important;
+            color: #b91c1c !important;
+        }
+        /* Previous chat buttons */
+        button[key^="load_"] {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+            border: 2px solid #9ca3af !important;
+            text-align: left !important;
+        }
+        button[key^="load_"]:hover {
+            background-color: #f0f2f6 !important;
+        }
+        /* Info/Alert boxes */
+        .stAlert p,
+        [data-testid="stAlert"] p,
+        [data-testid="stNotification"] p,
+        div[data-baseweb="notification"] p {
+            color: #1a1a1a !important;
+            font-weight: 500 !important;
+        }
+        /* Chat messages - light mode */
+        .stChatMessage {
+            background-color: #ffffff !important;
+            border: 2px solid #9ca3af !important;
+            border-radius: 16px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stChatMessage ul,
+        .stChatMessage ol,
+        .stChatMessage li,
+        .stChatMessage p {
+            color: #1a1a1a !important;
+        }
+        /* Code blocks - light mode */
+        .stChatMessage code {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+            border: 1px solid #d1d5db !important;
+        }
+        /* Top bar area - light mode */
+        [data-testid="stHeader"] {
+            background-color: #ffffff !important;
+        }
+        [data-testid="stToolbar"] {
+            background-color: #ffffff !important;
+        }
+        /* Title area */
+        section.main > div:first-child {
+            background-color: #ffffff !important;
+        }
+        /* Main content area background */
+        section.main {
+            background-color: #ffffff !important;
+        }
+        /* Headers */
+        h1, h2, h3 {
+            color: #1a202c !important;
+        }
+        /* Reduce sidebar padding to minimum */
+        [data-testid="stSidebar"] .block-container {
+            padding: 0.25em !important;
+        }
+        [data-testid="stSidebar"] {
+            padding: 0.25em !important;
+        }
+        section[data-testid="stSidebar"] > div {
+            padding: 0.25em !important;
+        }
+        /* Minimize main content area padding and margins */
+        section.main.st-emotion-cache-uf99v8 > div.block-container,
+        div.block-container.st-emotion-cache-z5fcl4 {
+            padding-top: 0.5em !important;
+            padding-bottom: 0.5em !important;
+            padding-left: 3em !important;
+            padding-right: 3em !important;
+            margin: 0 !important;
+        }
+        /* Table text visibility */
+        table,
+        table thead,
+        table tbody,
+        table tr,
+        table td,
+        table th {
+            color: #1a1a1a !important;
+        }
+        table,
+        table td,
+        table th {
+            border-color: #1a1a1a !important;
+        }
+        </style>
+        """
     
-    # Sidebar with full functionality
+    st.markdown(theme_css, unsafe_allow_html=True)
+    
+    # Additional CSS for layout
+    st.markdown("""
+    <style>
+    /* Title with minimal padding and margins */
+    [data-testid="stAppViewContainer"] > div:first-child {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    h1 {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-top: 0.25em !important;
+        padding-bottom: 0.25em !important;
+    }
+    /* Main block container - reduce top padding */
+    .block-container {
+        padding-top: 0.25em !important;
+        margin-top: 0 !important;
+    }
+    /* Reduce divider margins */
+    hr {
+        margin-top: 0.25em !important;
+        margin-bottom: 0.25em !important;
+    }
+    /* Reduce element container spacing */
+    .element-container {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    /* Reduce chat message spacing */
+    .stChatMessage {
+        margin-top: 0.25em !important;
+        margin-bottom: 0.25em !important;
+        padding: 0.5em !important;
+    }
+    /* Reduce vertical block spacing */
+    [data-testid="stVerticalBlock"] > div {
+        gap: 0.25em !important;
+    }
+    /* Sidebar flex column layout with spacing */
+    [data-testid="stSidebar"] {
+        padding: 1em !important;
+    }
+    [data-testid="stSidebar"] > div:first-child {
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100vh !important;
+    }
+    [data-testid="stSidebarContent"] {
+        padding: 0.25em !important;
+        margin-top: 0.25em !important;
+        margin-bottom: 0.25em !important;
+    }
+    /* Specific sidebar section padding */
+    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.st-emotion-cache-1cypcdb.eczjsme11 > div.st-emotion-cache-6qob1r.eczjsme3 > div.st-emotion-cache-16txtl3.eczjsme4 {
+        padding-top: 0.5em !important;
+        padding-bottom: 0.5em !important;
+        height: 100% !important;
+    }
+    /* Main area element container padding */
+    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1n8yat3.e1f1d6gn3 > div {
+        padding: 0px !important;
+    }
+    /* Block container bottom padding */
+    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 {
+        padding-bottom: 170px !important;
+    }
+    /* Chat input container styling */
+    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
+        padding: 1em !important;
+    }
+    /* Fixed chat input container */
+    .st-emotion-cache-usj992 {
+        position: fixed !important;
+        bottom: 0px !important;
+        padding-bottom: 1rem !important;
+        padding-top: 1rem !important;
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+        z-index: 99 !important;
+    }
+    [data-testid="stSidebar"] .block-container {
+        padding: 0 !important;
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    section[data-testid="stSidebar"] > div {
+        padding: 0 !important;
+    }
+    /* Minimize vertical spacing in sidebar */
+    [data-testid="stSidebar"] p {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1.2 !important;
+    }
+    [data-testid="stSidebar"] .element-container {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    [data-testid="stSidebar"] .stMarkdown {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    [data-testid="stSidebar"] .row-widget {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    [data-testid="stSidebar"] hr {
+        margin: 0.5em 0 !important;
+    }
+    /* Hide empty elements in sidebar */
+    [data-testid="stSidebar"] .element-container:empty {
+        display: none !important;
+    }
+    [data-testid="stSidebar"] div:empty {
+        display: none !important;
+    }
+    /* Reduce spacing between sidebar buttons */
+    [data-testid="stSidebar"] .stButton {
+        margin-top: 0.25em !important;
+        margin-bottom: 0.25em !important;
+    }
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        margin-top: 0.5em !important;
+        margin-bottom: 0.25em !important;
+        padding: 0 !important;
+    }
+    /* Center info boxes vertically in sidebar */
+    [data-testid="stSidebar"] .stAlert,
+    [data-testid="stSidebar"] [data-testid="stAlert"],
+    [data-testid="stSidebar"] [data-testid="stNotification"] {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        min-height: 100px !important;
+        height: 100% !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    [data-testid="stSidebar"] .element-container:has(.stAlert),
+    [data-testid="stSidebar"] .element-container:has([data-testid="stAlert"]) {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    /* Theme section - center buttons and reduce height */
+    [class*="st-emotion"][class*="cache"] [data-testid="column"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: auto !important;
+        padding: 0.1em !important;
+        padding-bottom: 0 !important;
+    }
+    /* Center theme buttons in their cells */
+    [data-testid="stSidebar"] button[key="light_mode"],
+    [data-testid="stSidebar"] button[key="dark_mode"] {
+        margin: 0 auto !important;
+        display: block !important;
+    }
+    [data-testid="stSidebar"] .stButton {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    [class*="st-emotion"][class*="cache"].row-widget.stHorizontal {
+        min-height: auto !important;
+        height: auto !important;
+        padding: 0.1em 0 !important;
+        padding-bottom: 0 !important;
+        margin: 0 !important;
+    }
+    [data-testid="stSidebar"] [class*="st-emotion"][class*="cache"] {
+        min-height: auto !important;
+        padding-bottom: 0 !important;
+    }
+    /* Add bottom padding to prevent messages being hidden */
+    section.main > div.block-container {
+        padding-bottom: 150px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    
+    # Check for delete confirmation BEFORE rendering sidebar to prevent recursion
+    if st.session_state.delete_confirm_chat:
+        name, filepath, display_name = st.session_state.delete_confirm_chat
+        
+        st.warning("⚠️ Confirmation Required")
+        st.markdown(f"### Delete '{display_name}'?")
+        st.write("This action cannot be undone.")
+        st.divider()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("✅ Yes, Delete", use_container_width=True, type="primary", key="confirm_delete"):
+                try:
+                    os.remove(filepath)
+                    logger.info(f"Deleted conversation: {filepath}")
+                    
+                    if st.session_state.current_conversation_name == name:
+                        st.session_state.current_conversation_name = None
+                        st.session_state.messages = []
+                        st.session_state.agent.clear_conversation_history()
+                        save_chat_history_to_file(st.session_state.messages)
+                    
+                    st.session_state.delete_confirm_chat = None
+                    st.success(f"Deleted {display_name}")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Failed to delete: {e}")
+                    st.session_state.delete_confirm_chat = None
+                    st.rerun()
+        
+        with col2:
+            if st.button("❌ No, Cancel", use_container_width=True, key="cancel_delete"):
+                st.session_state.delete_confirm_chat = None
+                st.rerun()
+        
+        st.stop()  # Stop execution here to prevent sidebar from rendering
+    
+    # ============================================================================
+    # SIDEBAR - Theme Toggle, Controls, and Previous Chats
+    # ============================================================================
     with st.sidebar:
-        # System Info with collapse button
-        col1, col2 = st.columns([4, 1])
-        with col1:
-            st.header("📊 System Info")
-        with col2:
-            if st.button("▼" if st.session_state.show_system_info else "▶", key="toggle_system_info"):
-                st.session_state.show_system_info = not st.session_state.show_system_info
+        st.markdown("### ⚙️ PCORNET Assistant")
+        st.divider()
         
-        if st.session_state.initialized and st.session_state.show_system_info:
-            info = st.session_state.agent.get_info()
-            st.text(f"🔗 Endpoint: {info['endpoint']}")
-            st.text(f"🤖 Deployment: {info['deployment']}")
-            st.text(f"📋 API Version: {info['api_version']}")
-            
-            if info['specialized_agents']:
-                st.text(f"🎯 Agents: {', '.join(info['specialized_agents'])}")
+        # Theme Toggle Section
+        st.markdown("**Theme**")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("☀️", key="light_mode", help="Light Mode",
+                        type="primary" if st.session_state.theme == 'light' else "secondary"):
+                st.session_state.theme = 'light'
+                st.rerun()
+        with col2:
+            if st.button("🌙", key="dark_mode", help="Dark Mode",
+                        type="primary" if st.session_state.theme == 'dark' else "secondary"):
+                st.session_state.theme = 'dark'
+                st.rerun()
         
         st.divider()
         
-        # History stats with collapse button
-        col1, col2 = st.columns([4, 1])
-        with col1:
-            st.header("💬 History Stats")
-        with col2:
-            if st.button("▼" if st.session_state.show_history_stats else "▶", key="toggle_history_stats"):
-                st.session_state.show_history_stats = not st.session_state.show_history_stats
-        
-        if st.session_state.show_history_stats:
-            history_info = st.session_state.agent.get_conversation_history()
-            stats = history_info['stats']
-            st.text(f"Total Messages: {stats['total_messages']}")
-            st.text(f"User Messages: {stats['user_messages']}")
-            st.text(f"Assistant Messages: {stats['assistant_messages']}")
-        
-        st.divider()
-        
-        # Memory stats with collapse button
-        col1, col2 = st.columns([4, 1])
-        with col1:
-            st.header("🧠 Memory Stats")
-        with col2:
-            if st.button("▼" if st.session_state.show_memory_stats else "▶", key="toggle_memory_stats"):
-                st.session_state.show_memory_stats = not st.session_state.show_memory_stats
-        
-        if st.session_state.show_memory_stats:
-            try:
-                memory_stats = st.session_state.agent.get_memory_stats()
-                
-                episodic = memory_stats.get('episodic_memory', {})
-                st.text(f"Past Conversations: {episodic.get('total_episodes', 0)}")
-                
-                semantic = memory_stats.get('semantic_memory', {})
-                st.text(f"Facts Learned: {semantic.get('total_facts', 0)}")
-                
-                st.text(f"Auto-Extract: {'✓' if memory_stats.get('auto_fact_extraction', False) else '✗'}")
-            except Exception as e:
-                st.warning("Memory stats unavailable (first run)")
-        
-        st.divider()
-        
-        # Control buttons
-        st.header("🏛️ Controls")
+        # Controls Section
+        st.markdown("**Controls**")
         
         if st.button("🆕 New Chat", use_container_width=True, key="new_chat_btn", type="primary"):
             has_messages = len(st.session_state.messages) > 0
@@ -318,11 +944,12 @@ def main():
         st.divider()
         
         # Previous Chats Section
-        st.header("💬 Previous Chats")
+        st.markdown("**💬 Previous Chats**")
         
         saved_convos = get_saved_conversations()
         
         if saved_convos:
+            # Create scrollable container for chat list
             for name, filepath, _ in saved_convos:
                 display_name = name.replace('_', ' ')
                 
@@ -332,10 +959,9 @@ def main():
                     chat_clicked = st.button(f"📄 {display_name}", use_container_width=True, key=f"load_{name}")
                 
                 with col2:
-                    delete_clicked = st.button("🗑️", key=f"delete_{name}", help="Delete this conversation")
-                
-                if delete_clicked:
-                    st.session_state.delete_confirm_chat = (name, filepath, display_name)
+                    if st.button("🗑️", key=f"delete_{name}", help="Delete this conversation"):
+                        st.session_state.delete_confirm_chat = (name, filepath, display_name)
+                        st.rerun()
                 
                 if chat_clicked:
                     if st.session_state.current_conversation_name != name:
@@ -370,53 +996,39 @@ def main():
                         st.rerun()
         else:
             st.info("No saved conversations yet. Start chatting to create one!")
+        
+        # Add padding at bottom of sidebar
+        st.markdown("<br>" * 3, unsafe_allow_html=True)
     
-    # Show delete confirmation dialog if a chat is pending deletion
-    if st.session_state.delete_confirm_chat:
-        name, filepath, display_name = st.session_state.delete_confirm_chat
-        
-        st.divider()
-        st.markdown("### ⚠️ Confirm Deletion")
-        st.write(f"Are you sure you want to delete **{display_name}**?")
-        st.write("This action cannot be undone.")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("✅ Yes, Delete", use_container_width=True, type="primary", key="confirm_delete"):
-                try:
-                    os.remove(filepath)
-                    logger.info(f"Deleted conversation: {filepath}")
-                    
-                    if st.session_state.current_conversation_name == name:
-                        st.session_state.current_conversation_name = None
-                        st.session_state.messages = []
-                        st.session_state.agent.clear_conversation_history()
-                        save_chat_history_to_file(st.session_state.messages)
-                    
-                    st.session_state.delete_confirm_chat = None
-                except Exception as e:
-                    st.error(f"❌ Failed to delete: {e}")
-                    st.session_state.delete_confirm_chat = None
-        
-        with col2:
-            if st.button("❌ No, Cancel", use_container_width=True, key="cancel_delete"):
-                st.session_state.delete_confirm_chat = None
-        
-        st.divider()
-        return
+    # ============================================================================
+    # MAIN CHAT AREA - Title, Conversation Display, and Input
+    # ============================================================================
     
-    # Main chat area
     if not st.session_state.initialized:
         return
     
-    # Display chat messages
-    logger.info(f"Displaying {len(st.session_state.messages)} messages")
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Title in main area
+    st.title("🤖 PCORNET Concept Set Tool")
     
-    # Chat input
+    # Show current conversation name if loaded
+    if st.session_state.current_conversation_name:
+        current_display = st.session_state.current_conversation_name.replace('_', ' ')
+        st.caption(f"📂 Current conversation: **{current_display}**")
+    
+    st.divider()
+    
+    # Chat messages container (scrollable area at top)
+    chat_container = st.container()
+    with chat_container:
+        if st.session_state.messages:
+            logger.info(f"Displaying {len(st.session_state.messages)} messages")
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+        else:
+            st.info("👋 Welcome! Start a conversation by typing a message below.")
+    
+    # Chat input at the bottom
     if prompt := st.chat_input("Type your message here..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         

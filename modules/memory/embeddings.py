@@ -5,7 +5,13 @@ Provides text-to-vector conversion using sentence-transformers for
 efficient semantic search across conversations and facts.
 """
 import logging
+import warnings
 from typing import List
+
+# Suppress torch warnings before importing sentence_transformers
+warnings.filterwarnings('ignore', message='.*torch.classes.*')
+warnings.filterwarnings('ignore', message='.*Tried to instantiate class.*')
+
 from sentence_transformers import SentenceTransformer
 import numpy as np
 

@@ -56,3 +56,4 @@ logs/
 *_old.py
 *.bak
 *.orig
+modules/memory/__init__.py
