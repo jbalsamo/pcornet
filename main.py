@@ -255,29 +255,52 @@ def main():
         [data-testid="stSidebar"] {
             background-color: #1a1d29 !important;
         }
-        /* Chat input - dark mode (colors only) */
+        /* Sidebar collapse/expand button - dark mode */
+        [data-testid="collapsedControl"] {
+            background-color: #4a5568 !important;
+            color: #fafafa !important;
+        }
+        [data-testid="collapsedControl"]:hover {
+            background-color: #5a6578 !important;
+        }
+        /* Chat input - dark mode (colors only) - HIGH SPECIFICITY */
+        [data-testid="stBottom"] [data-testid="stChatInput"] textarea,
+        [data-testid="stChatInputContainer"] textarea,
+        .stChatFloatingInputContainer textarea,
         [data-testid="stChatInput"] textarea {
             background-color: #1e2130 !important;
             color: #fafafa !important;
             caret-color: #fafafa !important;
+            border-radius: 8px !important;
+            border: 1px solid #4a5568 !important;
         }
-        [data-testid="stChatInput"] {
-            background-color: #0e1117 !important;
+        [data-testid="stBottom"] [data-testid="stChatInput"] textarea::placeholder,
+        [data-testid="stChatInputContainer"] textarea::placeholder,
+        .stChatFloatingInputContainer textarea::placeholder,
+        [data-testid="stChatInput"] textarea::placeholder {
+            color: #9ca3af !important;
         }
         /* Chat input container - dark mode - stable selector */
-        section.main div.element-container [data-testid="stChatInput"] {
-            background-color: #1e2130 !important;
+        [data-testid="stChatInput"] {
+            background-color: transparent !important;
         }
         /* Fixed chat input area - stable selectors for dark mode */
         [data-testid="stBottom"],
         [data-testid="stChatInputContainer"],
         .stChatFloatingInputContainer {
-            background-color: #1e2130 !important;
+            background-color: #0e1117 !important;
             color: #fafafa !important;
         }
-        [data-testid="stBottom"] *,
-        [data-testid="stChatInputContainer"] *,
-        .stChatFloatingInputContainer * {
+        /* Ensure text elements in bottom area are light colored */
+        [data-testid="stBottom"] p,
+        [data-testid="stBottom"] span,
+        [data-testid="stBottom"] label,
+        [data-testid="stChatInputContainer"] p,
+        [data-testid="stChatInputContainer"] span,
+        [data-testid="stChatInputContainer"] label,
+        .stChatFloatingInputContainer p,
+        .stChatFloatingInputContainer span,
+        .stChatFloatingInputContainer label {
             color: #fafafa !important;
         }
         /* Buttons */
@@ -379,6 +402,7 @@ def main():
             background-color: #1e2130 !important;
             border: 2px solid #4a5568 !important;
             border-radius: 16px !important;
+            padding: 1em !important;
         }
         .stChatMessage ul,
         .stChatMessage ol,
@@ -412,22 +436,11 @@ def main():
         h1, h2, h3 {
             color: #fafafa !important;
         }
-        /* Reduce sidebar padding to minimum */
-        [data-testid="stSidebar"] .block-container {
-            padding: 0.25em !important;
-        }
-        [data-testid="stSidebar"] {
-            padding: 0.25em !important;
-        }
-        section[data-testid="stSidebar"] > div {
-            padding: 0.25em !important;
-        }
-        /* Minimize main content area padding and margins - stable selector */
+        /* Main content area padding - dark mode */
         section.main > div.block-container {
             padding-top: 0.5em !important;
-            padding-bottom: 0.5em !important;
-            padding-left: 3em !important;
-            padding-right: 3em !important;
+            padding-left: 2em !important;
+            padding-right: 2em !important;
             margin: 0 !important;
         }
         /* Table text visibility */
@@ -457,29 +470,52 @@ def main():
         [data-testid="stSidebar"] {
             background-color: #f8f9fa !important;
         }
-        /* Chat input - light mode (colors only) */
+        /* Sidebar collapse/expand button - light mode */
+        [data-testid="collapsedControl"] {
+            background-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
+        [data-testid="collapsedControl"]:hover {
+            background-color: #374151 !important;
+        }
+        /* Chat input - light mode (colors only) - HIGH SPECIFICITY */
+        [data-testid="stBottom"] [data-testid="stChatInput"] textarea,
+        [data-testid="stChatInputContainer"] textarea,
+        .stChatFloatingInputContainer textarea,
         [data-testid="stChatInput"] textarea {
-            background-color: #ffffff !important;
+            background-color: #f8f9fa !important;
             color: #262730 !important;
             caret-color: #262730 !important;
+            border-radius: 8px !important;
+            border: 1px solid #9ca3af !important;
         }
-        [data-testid="stChatInput"] {
-            background-color: #ffffff !important;
+        [data-testid="stBottom"] [data-testid="stChatInput"] textarea::placeholder,
+        [data-testid="stChatInputContainer"] textarea::placeholder,
+        .stChatFloatingInputContainer textarea::placeholder,
+        [data-testid="stChatInput"] textarea::placeholder {
+            color: #6b7280 !important;
         }
         /* Chat input container - light mode - stable selector */
-        section.main div.element-container [data-testid="stChatInput"] {
-            background-color: #f3f4f6 !important;
+        [data-testid="stChatInput"] {
+            background-color: transparent !important;
         }
         /* Fixed chat input area - stable selectors for light mode */
         [data-testid="stBottom"],
         [data-testid="stChatInputContainer"],
         .stChatFloatingInputContainer {
-            background-color: rgb(230, 234, 241) !important;
+            background-color: #ffffff !important;
             color: #262730 !important;
         }
-        [data-testid="stBottom"] *,
-        [data-testid="stChatInputContainer"] *,
-        .stChatFloatingInputContainer * {
+        /* Ensure text elements in bottom area are dark colored */
+        [data-testid="stBottom"] p,
+        [data-testid="stBottom"] span,
+        [data-testid="stBottom"] label,
+        [data-testid="stChatInputContainer"] p,
+        [data-testid="stChatInputContainer"] span,
+        [data-testid="stChatInputContainer"] label,
+        .stChatFloatingInputContainer p,
+        .stChatFloatingInputContainer span,
+        .stChatFloatingInputContainer label {
             color: #262730 !important;
         }
         /* Buttons */
@@ -583,6 +619,7 @@ def main():
             border: 2px solid #9ca3af !important;
             border-radius: 16px !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1em !important;
         }
         .stChatMessage ul,
         .stChatMessage ol,
@@ -615,24 +652,13 @@ def main():
         }
         /* Headers */
         h1, h2, h3 {
-            color: #1a202c !important;
+            color: #262730 !important;
         }
-        /* Reduce sidebar padding to minimum */
-        [data-testid="stSidebar"] .block-container {
-            padding: 0.25em !important;
-        }
-        [data-testid="stSidebar"] {
-            padding: 0.25em !important;
-        }
-        section[data-testid="stSidebar"] > div {
-            padding: 0.25em !important;
-        }
-        /* Minimize main content area padding and margins - stable selector */
+        /* Main content area padding - light mode */
         section.main > div.block-container {
             padding-top: 0.5em !important;
-            padding-bottom: 0.5em !important;
-            padding-left: 3em !important;
-            padding-right: 3em !important;
+            padding-left: 2em !important;
+            padding-right: 2em !important;
             margin: 0 !important;
         }
         /* Table text visibility */
@@ -683,11 +709,15 @@ def main():
         margin-top: 0 !important;
         padding-top: 0 !important;
     }
-    /* Reduce chat message spacing */
+    /* Reduce chat message spacing and ensure proper width */
     .stChatMessage {
         margin-top: 0.25em !important;
         margin-bottom: 0.25em !important;
-        padding: 0.5em !important;
+        padding-bottom: 0.5em !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     /* Reduce vertical block spacing */
     [data-testid="stVerticalBlock"] > div {
@@ -695,21 +725,34 @@ def main():
     }
     /* Sidebar flex column layout with spacing */
     [data-testid="stSidebar"] {
-        padding: 1em !important;
+        padding: 0 !important;
     }
     [data-testid="stSidebar"] > div:first-child {
-        padding: 0 !important;
+        padding-top: 2em !important;
+        padding-left: 1em !important;
+        padding-right: 1em !important;
+        padding-bottom: 1em !important;
         display: flex !important;
         flex-direction: column !important;
         height: 100vh !important;
+        box-sizing: border-box !important;
+    }
+    /* Override auto-generated emotion cache classes in sidebar */
+    [data-testid="stSidebar"] [class*="st-emotion-cache"] {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    [data-testid="stSidebar"] > div > [class*="st-emotion-cache"]:first-child {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
     }
     /* Sidebar content padding - stable selector */
     [data-testid="stSidebarContent"] {
-        padding-top: 0.5em !important;
+        padding-top: 0 !important;
         padding-bottom: 0.5em !important;
         padding-left: 0.25em !important;
         padding-right: 0.25em !important;
-        margin-top: 0.25em !important;
+        margin-top: 0 !important;
         margin-bottom: 0.25em !important;
         height: 100% !important;
     }
@@ -722,20 +765,62 @@ def main():
         padding-bottom: 170px !important;
     }
     /* Chat input container styling - stable selector */
-    section.main div.element-container [data-testid="stChatInput"] {
-        padding: 1em !important;
+    [data-testid="stChatInput"] {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
     }
-    /* Fixed chat input container - stable selectors */
+    /* Ensure textarea and file input stay within bounds */
+    [data-testid="stChatInput"] textarea {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+    [data-testid="stChatInput"] input[type="file"] {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    /* Limit file uploader container */
+    [data-testid="stChatInput"] [data-testid="stFileUploader"] {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    /* Hide duplicate file uploaders - keep only first one */
+    [data-testid="stChatInput"] [data-testid="stFileUploader"]:not(:first-of-type) {
+        display: none !important;
+    }
+    /* Ensure all nested divs don't overflow */
+    [data-testid="stChatInput"] > div,
+    [data-testid="stChatInput"] > div > div {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    /* Fixed chat input container - stable selectors - centered at 80% */
     [data-testid="stBottom"],
     [data-testid="stChatInputContainer"],
     .stChatFloatingInputContainer {
         position: fixed !important;
         bottom: 0px !important;
+        left: var(--sidebar-width, 21rem) !important;
+        right: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
         padding-bottom: 1rem !important;
         padding-top: 1rem !important;
-        padding-left: 5px !important;
-        padding-right: 5px !important;
+        padding-left: 5% !important;
+        padding-right: 5% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
         z-index: 99 !important;
+    }
+    /* Chat input when sidebar is collapsed */
+    [data-testid="collapsedControl"] ~ * [data-testid="stBottom"],
+    [data-testid="collapsedControl"] ~ * [data-testid="stChatInputContainer"],
+    [data-testid="collapsedControl"] ~ * .stChatFloatingInputContainer {
+        left: 0 !important;
+        padding-left: 10% !important;
+        padding-right: 10% !important;
     }
     [data-testid="stSidebar"] .block-container {
         padding: 0 !important;

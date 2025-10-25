@@ -1,0 +1,11 @@
+[server]
+headless = true
+port = 8888
+
+[theme]
+# Use light theme as base, CSS will handle dark mode
+base = "light"
+primaryColor = "#3b82f6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9fa"
+textColor = "#262730"
