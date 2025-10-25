@@ -264,8 +264,8 @@ def main():
         [data-testid="stChatInput"] {
             background-color: #0e1117 !important;
         }
-        /* Chat input container - dark mode */
-        #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
+        /* Chat input container - dark mode - stable selector */
+        section.main div.element-container [data-testid="stChatInput"] {
             background-color: #1e2130 !important;
         }
         /* Fixed chat input area - stable selectors for dark mode */
@@ -422,9 +422,8 @@ def main():
         section[data-testid="stSidebar"] > div {
             padding: 0.25em !important;
         }
-        /* Minimize main content area padding and margins */
-        section.main.st-emotion-cache-uf99v8 > div.block-container,
-        div.block-container.st-emotion-cache-z5fcl4 {
+        /* Minimize main content area padding and margins - stable selector */
+        section.main > div.block-container {
             padding-top: 0.5em !important;
             padding-bottom: 0.5em !important;
             padding-left: 3em !important;
@@ -467,8 +466,8 @@ def main():
         [data-testid="stChatInput"] {
             background-color: #ffffff !important;
         }
-        /* Chat input container - light mode */
-        #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
+        /* Chat input container - light mode - stable selector */
+        section.main div.element-container [data-testid="stChatInput"] {
             background-color: #f3f4f6 !important;
         }
         /* Fixed chat input area - stable selectors for light mode */
@@ -628,9 +627,8 @@ def main():
         section[data-testid="stSidebar"] > div {
             padding: 0.25em !important;
         }
-        /* Minimize main content area padding and margins */
-        section.main.st-emotion-cache-uf99v8 > div.block-container,
-        div.block-container.st-emotion-cache-z5fcl4 {
+        /* Minimize main content area padding and margins - stable selector */
+        section.main > div.block-container {
             padding-top: 0.5em !important;
             padding-bottom: 0.5em !important;
             padding-left: 3em !important;
@@ -705,27 +703,26 @@ def main():
         flex-direction: column !important;
         height: 100vh !important;
     }
+    /* Sidebar content padding - stable selector */
     [data-testid="stSidebarContent"] {
-        padding: 0.25em !important;
-        margin-top: 0.25em !important;
-        margin-bottom: 0.25em !important;
-    }
-    /* Specific sidebar section padding */
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.st-emotion-cache-1cypcdb.eczjsme11 > div.st-emotion-cache-6qob1r.eczjsme3 > div.st-emotion-cache-16txtl3.eczjsme4 {
         padding-top: 0.5em !important;
         padding-bottom: 0.5em !important;
+        padding-left: 0.25em !important;
+        padding-right: 0.25em !important;
+        margin-top: 0.25em !important;
+        margin-bottom: 0.25em !important;
         height: 100% !important;
     }
-    /* Main area element container padding */
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1n8yat3.e1f1d6gn3 > div {
+    /* Main area element container padding - stable selector */
+    section.main div.element-container > div {
         padding: 0px !important;
     }
-    /* Block container bottom padding */
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 {
+    /* Block container bottom padding - stable selector */
+    section.main > div.block-container {
         padding-bottom: 170px !important;
     }
-    /* Chat input container styling */
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section.main.st-emotion-cache-uf99v8.ea3mdgi5 > div.block-container.st-emotion-cache-z5fcl4.ea3mdgi4 > div > div > div.element-container.st-emotion-cache-1om2bst.e1f1d6gn3 > div {
+    /* Chat input container styling - stable selector */
+    section.main div.element-container [data-testid="stChatInput"] {
         padding: 1em !important;
     }
     /* Fixed chat input container - stable selectors */
