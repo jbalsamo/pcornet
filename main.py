@@ -222,8 +222,22 @@ def main():
         except Exception as e:
             st.error(f"❌ Failed to initialize agent: {e}")
             st.session_state.initialized = False
-            return
-    
+          # Apply generic CSS (shared across themes, applied once at session start)
+    generic_css = """
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+    /* Generic styles */
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    </style>
+    """
+    st.markdown(generic_css, unsafe_allow_html=True)
+
     if 'messages' not in st.session_state:
         st.session_state.messages = load_chat_history_from_file()
         logger.info(f"Initialized session with {len(st.session_state.messages)} messages from chat_history.json")
@@ -247,7 +261,7 @@ def main():
     if st.session_state.theme == 'dark':
         theme_css = """
         <style>
-        /* Dark mode */
+        /* Dark mode - v2.0 */
         .stApp {
             background-color: #0e1117 !important;
             color: #fafafa !important;
@@ -462,7 +476,7 @@ def main():
     else:
         theme_css = """
         <style>
-        /* Light mode */
+        /* Light mode - v2.0 */
         .stApp {
             background-color: #ffffff !important;
             color: #262730 !important;
@@ -810,9 +824,12 @@ def main():
         padding-top: 1rem !important;
         padding-left: 5% !important;
         padding-right: 5% !important;
+        margin: 0 !important;
         box-sizing: border-box !important;
-        overflow-x: hidden !important;
+        overflow: hidden !important;
         z-index: 99 !important;
+        /* Ensure background doesn't extend beyond bounds */
+        contain: layout !important;
     }
     /* Chat input when sidebar is collapsed */
     [data-testid="collapsedControl"] ~ * [data-testid="stBottom"],
