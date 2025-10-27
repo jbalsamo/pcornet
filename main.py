@@ -259,11 +259,19 @@ def main():
         [data-testid="collapsedControl"] { background-color: #4a5568 !important; color: #fafafa !important; }
         [data-testid="collapsedControl"]:hover { background-color: #5a6578 !important; }
         
-        /* Chat input colors */
+        /* Top status bar / header */
+        [data-testid="stHeader"], header[data-testid="stHeader"] { background-color: #0e1117 !important; }
+        [data-testid="stStatusWidget"] { background-color: #0e1117 !important; color: #fafafa !important; }
+        [data-testid="stStatusWidget"] > div { background-color: #0e1117 !important; color: #fafafa !important; }
+        [data-testid="stToolbar"] { background-color: #0e1117 !important; }
+        
+        /* Chat input colors and surrounding area */
+        [data-testid="stChatInput"] { background-color: #0e1117 !important; }
         [data-testid="stChatInput"] textarea { background-color: #1e2130 !important; color: #fafafa !important; 
             border: 1px solid #4a5568 !important; }
         [data-testid="stChatInput"] textarea::placeholder { color: #9ca3af !important; }
         [data-testid="stBottom"], [data-testid="stChatInputContainer"] { background-color: #0e1117 !important; }
+        .stChatFloatingInputContainer { background-color: #0e1117 !important; }
         
         /* Button colors */
         .stButton > button { background-color: #262730 !important; color: #fafafa !important; border: 2px solid #404050 !important; }
@@ -285,6 +293,15 @@ def main():
         h1, h2, h3 { color: #fafafa !important; }
         [data-testid="stSidebar"] p, [data-testid="stSidebar"] span { color: #e5e7eb !important; }
         table, table td, table th { color: #e5e7eb !important; border-color: #e5e7eb !important; }
+        
+        /* Additional dark mode coverage */
+        .main .block-container { background-color: #0e1117 !important; }
+        section[data-testid="stMain"] { background-color: #0e1117 !important; }
+        [data-testid="stAppViewContainer"] { background-color: #0e1117 !important; }
+        
+        /* Ensure all input containers are dark */
+        [data-testid="stChatInput"] > div, 
+        [data-testid="stChatInput"] > div > div { background-color: #0e1117 !important; }
         </style>
         """
     else:

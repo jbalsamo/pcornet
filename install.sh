@@ -444,8 +444,26 @@ create_streamlit_config() {
     STREAMLIT_CONFIG_DIR="$APP_DIR/.streamlit"
     mkdir -p "$STREAMLIT_CONFIG_DIR"
     
-    log "Creating Streamlit config.toml..."
-    cat > "$STREAMLIT_CONFIG_DIR/config.toml" << EOF
+    # Check if config.toml already exists (copied from source)
+    if [ -f "$STREAMLIT_CONFIG_DIR/config.toml" ]; then
+        log "Found existing config.toml from source - preserving it"
+        
+        # Update only the critical server settings if needed
+        if grep -q "^port = " "$STREAMLIT_CONFIG_DIR/config.toml"; then
+            log "Updating port to $APP_PORT in existing config..."
+            sed -i "s/^port = .*/port = $APP_PORT/" "$STREAMLIT_CONFIG_DIR/config.toml"
+        fi
+        
+        # Ensure headless mode is set
+        if ! grep -q "^headless = " "$STREAMLIT_CONFIG_DIR/config.toml"; then
+            log "Adding headless mode to existing config..."
+            sed -i '/^\[server\]/a headless = true' "$STREAMLIT_CONFIG_DIR/config.toml"
+        fi
+        
+        log "Using existing Streamlit configuration with updated server settings"
+    else
+        log "No config.toml found - creating default configuration..."
+        cat > "$STREAMLIT_CONFIG_DIR/config.toml" << EOF
 [server]
 headless = true
 port = $APP_PORT
@@ -457,12 +475,18 @@ enableXsrfProtection = true
 gatherUsageStats = false
 
 [theme]
-base = "dark"
-primaryColor = "#1f77b4"
+base = "light"
+primaryColor = "#3b82f6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9fa"
+textColor = "#262730"
+font = "sans serif"
 EOF
+        log "Default Streamlit configuration created"
+    fi
     
     chown -R "$APP_USER:$APP_USER" "$STREAMLIT_CONFIG_DIR"
-    log "Streamlit configuration created"
+    log "Streamlit configuration finalized"
 }
 
 ################################################################################
