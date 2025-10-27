@@ -569,13 +569,30 @@ server {
     location / {
         proxy_pass http://127.0.0.1:$APP_PORT;
         proxy_http_version 1.1;
+        
+        # WebSocket support
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
+        
+        # Proxy headers
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        
+        # Timeouts for WebSocket
         proxy_read_timeout 86400;
+        proxy_connect_timeout 60;
+        proxy_send_timeout 60;
+        
+        # Disable buffering for real-time streaming
+        proxy_buffering off;
+        proxy_cache off;
+        
+        # Ensure proper handling of redirects
+        proxy_redirect off;
     }
 
     # Increase upload limit for file uploads

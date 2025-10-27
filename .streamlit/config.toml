@@ -1,6 +1,16 @@
 [server]
 headless = true
 port = 8888
+address = "127.0.0.1"
+baseUrlPath = ""
+enableCORS = false
+enableXsrfProtection = true
+enableWebsocketCompression = true
+
+[browser]
+gatherUsageStats = false
+serverAddress = "127.0.0.1"
+serverPort = 8888
 
 # Light theme configuration (default)
 [theme]
