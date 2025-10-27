@@ -222,21 +222,13 @@ def main():
         except Exception as e:
             st.error(f"❌ Failed to initialize agent: {e}")
             st.session_state.initialized = False
-          # Apply generic CSS (shared across themes, applied once at session start)
-    generic_css = """
+    # Cache control headers (no styling needed - fonts are in config.toml)
+    cache_headers = """
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <style>
-    /* Generic styles */
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        line-height: 1.5;
-    }
-    </style>
     """
-    st.markdown(generic_css, unsafe_allow_html=True)
+    st.markdown(cache_headers, unsafe_allow_html=True)
 
     if 'messages' not in st.session_state:
         st.session_state.messages = load_chat_history_from_file()
@@ -257,438 +249,64 @@ def main():
         st.session_state.interactive_session_id = f"streamlit_{uuid.uuid4().hex[:8]}"
         logger.info(f"Created new interactive session ID: {st.session_state.interactive_session_id}")
     
-    # Apply custom CSS for theme styling (colors only, no layout changes)
+    # Apply minimal CSS for theme-specific colors (config.toml handles base theme)
     if st.session_state.theme == 'dark':
         theme_css = """
         <style>
-        /* Dark mode - v2.0 */
-        .stApp {
-            background-color: #0e1117 !important;
-            color: #fafafa !important;
-        }
-        [data-testid="stSidebar"] {
-            background-color: #1a1d29 !important;
-        }
-        /* Sidebar collapse/expand button - dark mode */
-        [data-testid="collapsedControl"] {
-            background-color: #4a5568 !important;
-            color: #fafafa !important;
-        }
-        [data-testid="collapsedControl"]:hover {
-            background-color: #5a6578 !important;
-        }
-        /* Chat input - dark mode (colors only) - HIGH SPECIFICITY */
-        [data-testid="stBottom"] [data-testid="stChatInput"] textarea,
-        [data-testid="stChatInputContainer"] textarea,
-        .stChatFloatingInputContainer textarea,
-        [data-testid="stChatInput"] textarea {
-            background-color: #1e2130 !important;
-            color: #fafafa !important;
-            caret-color: #fafafa !important;
-            border-radius: 8px !important;
-            border: 1px solid #4a5568 !important;
-        }
-        [data-testid="stBottom"] [data-testid="stChatInput"] textarea::placeholder,
-        [data-testid="stChatInputContainer"] textarea::placeholder,
-        .stChatFloatingInputContainer textarea::placeholder,
-        [data-testid="stChatInput"] textarea::placeholder {
-            color: #9ca3af !important;
-        }
-        /* Chat input container - dark mode - stable selector */
-        [data-testid="stChatInput"] {
-            background-color: transparent !important;
-        }
-        /* Fixed chat input area - stable selectors for dark mode */
-        [data-testid="stBottom"],
-        [data-testid="stChatInputContainer"],
-        .stChatFloatingInputContainer {
-            background-color: #0e1117 !important;
-            color: #fafafa !important;
-        }
-        /* Ensure text elements in bottom area are light colored */
-        [data-testid="stBottom"] p,
-        [data-testid="stBottom"] span,
-        [data-testid="stBottom"] label,
-        [data-testid="stChatInputContainer"] p,
-        [data-testid="stChatInputContainer"] span,
-        [data-testid="stChatInputContainer"] label,
-        .stChatFloatingInputContainer p,
-        .stChatFloatingInputContainer span,
-        .stChatFloatingInputContainer label {
-            color: #fafafa !important;
-        }
-        /* Buttons */
-        .stButton > button {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border: 2px solid #404050 !important;
-        }
-        .stButton > button:hover {
-            background-color: #363740 !important;
-            border-color: #606070 !important;
-        }
-        .stButton > button[kind="primary"] {
-            background-color: #4a5568 !important;
-            border-color: #5a6578 !important;
-        }
-        .stButton > button[kind="primary"]:hover {
-            background-color: #5a6578 !important;
-            border-color: #6a7588 !important;
-        }
-        /* Text inputs */
-        .stTextInput > div > div > input {
-            background-color: #1e2130 !important;
-            color: #fafafa !important;
-            caret-color: #fafafa !important;
-            border: 2px solid #4a5568 !important;
-        }
-        /* Sidebar text visibility */
-        [data-testid="stSidebar"] p,
-        [data-testid="stSidebar"] span,
-        [data-testid="stSidebar"] label {
-            color: #e5e7eb !important;
-        }
-        [data-testid="stSidebar"] h3,
-        [data-testid="stSidebar"] h2 {
-            color: #fafafa !important;
-        }
+        /* Dark mode color overrides */
+        .stApp { background-color: #0e1117 !important; color: #fafafa !important; }
+        [data-testid="stSidebar"] { background-color: #1a1d29 !important; }
+        [data-testid="collapsedControl"] { background-color: #4a5568 !important; color: #fafafa !important; }
+        [data-testid="collapsedControl"]:hover { background-color: #5a6578 !important; }
+        
+        /* Chat input colors */
+        [data-testid="stChatInput"] textarea { background-color: #1e2130 !important; color: #fafafa !important; 
+            border: 1px solid #4a5568 !important; }
+        [data-testid="stChatInput"] textarea::placeholder { color: #9ca3af !important; }
+        [data-testid="stBottom"], [data-testid="stChatInputContainer"] { background-color: #0e1117 !important; }
+        
+        /* Button colors */
+        .stButton > button { background-color: #262730 !important; color: #fafafa !important; border: 2px solid #404050 !important; }
+        .stButton > button:hover { background-color: #363740 !important; }
+        .stButton > button[kind="primary"] { background-color: #4a5568 !important; }
+        
         /* Theme toggle buttons */
-        .stButton button[key="light_mode"],
-        .stButton button[key="dark_mode"] {
-            width: 45px !important;
-            min-width: 45px !important;
-            height: 45px !important;
-            padding: 0.2em !important;
-            font-size: 20px !important;
-        }
-        .stButton button[key="light_mode"] {
-            background: #e5e7eb !important;
-            color: #1a202c !important;
-            border: 2px solid #d1d5db !important;
-        }
-        .stButton button[key="dark_mode"] {
-            background: #1a1d29 !important;
-            color: #fafafa !important;
-            border: 2px solid #2d3142 !important;
-        }
-        .stButton button[key="light_mode"][kind="primary"] {
-            background: #e5e7eb !important;
-            color: #1a202c !important;
-            border: 4px solid #3b82f6 !important;
-        }
-        .stButton button[key="dark_mode"][kind="primary"] {
-            background: #1a1d29 !important;
-            color: #fafafa !important;
-            border: 4px solid #3b82f6 !important;
-        }
-        /* Delete buttons */
-        button[key^="delete_"],
-        button[key*="delete"] {
-            background: #374151 !important;
-            color: #ef4444 !important;
-            border: 2px solid #4b5563 !important;
-        }
-        button[key^="delete_"]:hover,
-        button[key*="delete"]:hover {
-            background: #4b5563 !important;
-            color: #f87171 !important;
-        }
-        /* Previous chat buttons */
-        button[key^="load_"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border: 2px solid #4a5568 !important;
-            text-align: left !important;
-        }
-        button[key^="load_"]:hover {
-            background-color: #363740 !important;
-        }
-        /* Info/Alert boxes */
-        .stAlert p,
-        [data-testid="stAlert"] p,
-        [data-testid="stNotification"] p,
-        div[data-baseweb="notification"] p {
-            color: #fafafa !important;
-            font-weight: 500 !important;
-        }
-        /* Chat messages - dark mode */
-        .stChatMessage {
-            background-color: #1e2130 !important;
-            border: 2px solid #4a5568 !important;
-            border-radius: 16px !important;
-            padding: 1em !important;
-        }
-        .stChatMessage ul,
-        .stChatMessage ol,
-        .stChatMessage li,
-        .stChatMessage p {
-            color: #e5e7eb !important;
-        }
-        /* Code blocks - dark mode */
-        .stChatMessage code {
-            background-color: #262730 !important;
-            color: #f0f2f6 !important;
-            padding: 2px 6px !important;
-            border-radius: 4px !important;
-        }
-        /* Top bar area - dark mode */
-        [data-testid="stHeader"] {
-            background-color: #0e1117 !important;
-        }
-        [data-testid="stToolbar"] {
-            background-color: #0e1117 !important;
-        }
-        /* Title area */
-        section.main > div:first-child {
-            background-color: #0e1117 !important;
-        }
-        /* Main content area background */
-        section.main {
-            background-color: #0e1117 !important;
-        }
-        /* Headers */
-        h1, h2, h3 {
-            color: #fafafa !important;
-        }
-        /* Main content area padding - dark mode */
-        section.main > div.block-container {
-            padding-top: 0.5em !important;
-            padding-left: 2em !important;
-            padding-right: 2em !important;
-            margin: 0 !important;
-        }
-        /* Table text visibility */
-        table,
-        table thead,
-        table tbody,
-        table tr,
-        table td,
-        table th {
-            color: #e5e7eb !important;
-        }
-        table,
-        table td,
-        table th {
-            border-color: #e5e7eb !important;
-        }
+        button[key="light_mode"], button[key="dark_mode"] { width: 45px !important; height: 45px !important; }
+        button[key="light_mode"] { background: #e5e7eb !important; color: #1a202c !important; }
+        button[key="dark_mode"] { background: #1a1d29 !important; color: #fafafa !important; }
+        button[key="dark_mode"][kind="primary"] { border: 4px solid #3b82f6 !important; }
+        
+        /* Chat messages */
+        .stChatMessage { background-color: #1e2130 !important; border: 2px solid #4a5568 !important; }
+        .stChatMessage p, .stChatMessage li { color: #e5e7eb !important; }
+        .stChatMessage code { background-color: #262730 !important; color: #f0f2f6 !important; }
+        
+        /* Text colors */
+        h1, h2, h3 { color: #fafafa !important; }
+        [data-testid="stSidebar"] p, [data-testid="stSidebar"] span { color: #e5e7eb !important; }
+        table, table td, table th { color: #e5e7eb !important; border-color: #e5e7eb !important; }
         </style>
         """
     else:
         theme_css = """
         <style>
-        /* Light mode - v2.0 */
-        .stApp {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        [data-testid="stSidebar"] {
-            background-color: #f8f9fa !important;
-        }
-        /* Sidebar collapse/expand button - light mode */
-        [data-testid="collapsedControl"] {
-            background-color: #4b5563 !important;
-            color: #ffffff !important;
-        }
-        [data-testid="collapsedControl"]:hover {
-            background-color: #374151 !important;
-        }
-        /* Chat input - light mode (colors only) - HIGH SPECIFICITY */
-        [data-testid="stBottom"] [data-testid="stChatInput"] textarea,
-        [data-testid="stChatInputContainer"] textarea,
-        .stChatFloatingInputContainer textarea,
-        [data-testid="stChatInput"] textarea {
-            background-color: #f8f9fa !important;
-            color: #262730 !important;
-            caret-color: #262730 !important;
-            border-radius: 8px !important;
-            border: 1px solid #9ca3af !important;
-        }
-        [data-testid="stBottom"] [data-testid="stChatInput"] textarea::placeholder,
-        [data-testid="stChatInputContainer"] textarea::placeholder,
-        .stChatFloatingInputContainer textarea::placeholder,
-        [data-testid="stChatInput"] textarea::placeholder {
-            color: #6b7280 !important;
-        }
-        /* Chat input container - light mode - stable selector */
-        [data-testid="stChatInput"] {
-            background-color: transparent !important;
-        }
-        /* Fixed chat input area - stable selectors for light mode */
-        [data-testid="stBottom"],
-        [data-testid="stChatInputContainer"],
-        .stChatFloatingInputContainer {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        /* Ensure text elements in bottom area are dark colored */
-        [data-testid="stBottom"] p,
-        [data-testid="stBottom"] span,
-        [data-testid="stBottom"] label,
-        [data-testid="stChatInputContainer"] p,
-        [data-testid="stChatInputContainer"] span,
-        [data-testid="stChatInputContainer"] label,
-        .stChatFloatingInputContainer p,
-        .stChatFloatingInputContainer span,
-        .stChatFloatingInputContainer label {
-            color: #262730 !important;
-        }
-        /* Buttons */
-        .stButton > button {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            border: 2px solid #d0d5db !important;
-        }
-        .stButton > button:hover {
-            background-color: #f0f2f6 !important;
-            border-color: #b0b5bb !important;
-        }
-        .stButton > button[kind="primary"] {
-            background-color: #4299e1 !important;
-            color: #ffffff !important;
-            border-color: #3182ce !important;
-        }
-        .stButton > button[kind="primary"]:hover {
-            background-color: #3182ce !important;
-            border-color: #2c5aa0 !important;
-        }
-        /* Text inputs */
-        .stTextInput > div > div > input {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            caret-color: #262730 !important;
-            border: 2px solid #9ca3af !important;
-        }
-        /* Sidebar text visibility */
-        [data-testid="stSidebar"] p,
-        [data-testid="stSidebar"] span,
-        [data-testid="stSidebar"] label {
-            color: #374151 !important;
-        }
-        [data-testid="stSidebar"] h3,
-        [data-testid="stSidebar"] h2 {
-            color: #1a202c !important;
-        }
+        /* Light mode - minimal overrides (config.toml provides base) */
+        [data-testid="collapsedControl"] { background-color: #4b5563 !important; color: #ffffff !important; }
+        [data-testid="collapsedControl"]:hover { background-color: #374151 !important; }
+        
+        /* Chat input colors */
+        [data-testid="stChatInput"] textarea { background-color: #f8f9fa !important; border: 1px solid #9ca3af !important; }
+        [data-testid="stChatInput"] textarea::placeholder { color: #6b7280 !important; }
+        
         /* Theme toggle buttons */
-        .stButton button[key="light_mode"],
-        .stButton button[key="dark_mode"] {
-            width: 45px !important;
-            min-width: 45px !important;
-            height: 45px !important;
-            padding: 0.2em !important;
-            font-size: 20px !important;
-        }
-        .stButton button[key="light_mode"] {
-            background: #e5e7eb !important;
-            color: #1a202c !important;
-            border: 2px solid #d1d5db !important;
-        }
-        .stButton button[key="dark_mode"] {
-            background: #1a1d29 !important;
-            color: #fafafa !important;
-            border: 2px solid #2d3142 !important;
-        }
-        .stButton button[key="light_mode"][kind="primary"] {
-            background: #e5e7eb !important;
-            color: #1a202c !important;
-            border: 4px solid #3b82f6 !important;
-        }
-        .stButton button[key="dark_mode"][kind="primary"] {
-            background: #1a1d29 !important;
-            color: #fafafa !important;
-            border: 4px solid #3b82f6 !important;
-        }
-        /* Delete buttons */
-        button[key^="delete_"],
-        button[key*="delete"] {
-            background: #ffffff !important;
-            color: #dc2626 !important;
-            border: 2px solid #fca5a5 !important;
-        }
-        button[key^="delete_"]:hover,
-        button[key*="delete"]:hover {
-            background: #f3f4f6 !important;
-            color: #b91c1c !important;
-        }
-        /* Previous chat buttons */
-        button[key^="load_"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            border: 2px solid #9ca3af !important;
-            text-align: left !important;
-        }
-        button[key^="load_"]:hover {
-            background-color: #f0f2f6 !important;
-        }
-        /* Info/Alert boxes */
-        .stAlert p,
-        [data-testid="stAlert"] p,
-        [data-testid="stNotification"] p,
-        div[data-baseweb="notification"] p {
-            color: #1a1a1a !important;
-            font-weight: 500 !important;
-        }
-        /* Chat messages - light mode */
-        .stChatMessage {
-            background-color: #ffffff !important;
-            border: 2px solid #9ca3af !important;
-            border-radius: 16px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            padding: 1em !important;
-        }
-        .stChatMessage ul,
-        .stChatMessage ol,
-        .stChatMessage li,
-        .stChatMessage p {
-            color: #1a1a1a !important;
-        }
-        /* Code blocks - light mode */
-        .stChatMessage code {
-            background-color: #f3f4f6 !important;
-            color: #1f2937 !important;
-            padding: 2px 6px !important;
-            border-radius: 4px !important;
-            border: 1px solid #d1d5db !important;
-        }
-        /* Top bar area - light mode */
-        [data-testid="stHeader"] {
-            background-color: #ffffff !important;
-        }
-        [data-testid="stToolbar"] {
-            background-color: #ffffff !important;
-        }
-        /* Title area */
-        section.main > div:first-child {
-            background-color: #ffffff !important;
-        }
-        /* Main content area background */
-        section.main {
-            background-color: #ffffff !important;
-        }
-        /* Headers */
-        h1, h2, h3 {
-            color: #262730 !important;
-        }
-        /* Main content area padding - light mode */
-        section.main > div.block-container {
-            padding-top: 0.5em !important;
-            padding-left: 2em !important;
-            padding-right: 2em !important;
-            margin: 0 !important;
-        }
-        /* Table text visibility */
-        table,
-        table thead,
-        table tbody,
-        table tr,
-        table td,
-        table th {
-            color: #1a1a1a !important;
-        }
-        table,
-        table td,
-        table th {
-            border-color: #1a1a1a !important;
-        }
+        button[key="light_mode"], button[key="dark_mode"] { width: 45px !important; height: 45px !important; }
+        button[key="light_mode"] { background: #e5e7eb !important; color: #1a202c !important; }
+        button[key="light_mode"][kind="primary"] { border: 4px solid #3b82f6 !important; }
+        button[key="dark_mode"] { background: #1a1d29 !important; color: #fafafa !important; }
+        
+        /* Chat messages */
+        .stChatMessage { border: 2px solid #9ca3af !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stChatMessage code { background-color: #f3f4f6 !important; border: 1px solid #d1d5db !important; }
         </style>
         """
     
@@ -727,11 +345,20 @@ def main():
     .stChatMessage {
         margin-top: 0.25em !important;
         margin-bottom: 0.25em !important;
-        padding-bottom: 0.5em !important;
+        padding: 0.75em !important;
+        padding-bottom: 0.75em !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
+        overflow: visible !important;
+    }
+    /* Ensure chat message content is fully visible */
+    .stChatMessage p, .stChatMessage ul, .stChatMessage ol, .stChatMessage div {
+        margin-bottom: 0.5em !important;
+    }
+    .stChatMessage p:last-child, .stChatMessage ul:last-child, .stChatMessage ol:last-child {
+        margin-bottom: 0 !important;
     }
     /* Reduce vertical block spacing */
     [data-testid="stVerticalBlock"] > div {
@@ -776,7 +403,7 @@ def main():
     }
     /* Block container bottom padding - stable selector */
     section.main > div.block-container {
-        padding-bottom: 170px !important;
+        padding-bottom: 200px !important;
     }
     /* Chat input container styling - stable selector */
     [data-testid="stChatInput"] {
@@ -938,7 +565,18 @@ def main():
     }
     /* Add bottom padding to prevent messages being hidden */
     section.main > div.block-container {
-        padding-bottom: 150px !important;
+        padding-bottom: 200px !important;
+    }
+    /* Hide empty columns and dividers that create visual artifacts */
+    .stColumn:empty, [data-testid="column"]:empty {
+        display: none !important;
+    }
+    hr:empty {
+        display: none !important;
+    }
+    /* Hide stray vertical elements */
+    section.main [data-testid="stVerticalBlock"] > div:empty {
+        display: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1061,7 +699,7 @@ def main():
                 col1, col2 = st.columns([5, 1])
                 
                 with col1:
-                    chat_clicked = st.button(f"📄 {display_name}", use_container_width=True, key=f"load_{name}")
+                    chat_clicked = st.button(f"💬 {display_name}", use_container_width=True, key=f"load_{name}")
                 
                 with col2:
                     if st.button("🗑️", key=f"delete_{name}", help="Delete this conversation"):
@@ -1149,7 +787,6 @@ def main():
                         session_id=st.session_state.interactive_session_id
                     )
                     st.markdown(response)
-                    
                     st.session_state.messages.append({"role": "assistant", "content": response})
                     
                     st.session_state.agent.save_conversation_history()
