@@ -279,7 +279,6 @@ def main():
         .stButton > button[kind="primary"] { background-color: #4a5568 !important; }
         
         /* Theme toggle buttons */
-        button[key="light_mode"], button[key="dark_mode"] { width: 45px !important; height: 45px !important; }
         button[key="light_mode"] { background: #e5e7eb !important; color: #1a202c !important; }
         button[key="dark_mode"] { background: #1a1d29 !important; color: #fafafa !important; }
         button[key="dark_mode"][kind="primary"] { border: 4px solid #3b82f6 !important; }
@@ -316,7 +315,6 @@ def main():
         [data-testid="stChatInput"] textarea::placeholder { color: #6b7280 !important; }
         
         /* Theme toggle buttons */
-        button[key="light_mode"], button[key="dark_mode"] { width: 45px !important; height: 45px !important; }
         button[key="light_mode"] { background: #e5e7eb !important; color: #1a202c !important; }
         button[key="light_mode"][kind="primary"] { border: 4px solid #3b82f6 !important; }
         button[key="dark_mode"] { background: #1a1d29 !important; color: #fafafa !important; }
@@ -329,9 +327,14 @@ def main():
     
     st.markdown(theme_css, unsafe_allow_html=True)
     
-    # Additional CSS for layout
+    # Additional CSS for layout - high specificity to override Streamlit defaults
     st.markdown("""
     <style>
+    /* CSS Specificity Booster - ensures our styles override Streamlit config */
+    :root {
+        --custom-override: true;
+    }
+    
     /* Title with minimal padding and margins */
     [data-testid="stAppViewContainer"] > div:first-child {
         padding-top: 0 !important;
@@ -420,19 +423,31 @@ def main():
     }
     /* Block container bottom padding - stable selector */
     section.main > div.block-container {
-        padding-bottom: 200px !important;
+        padding-bottom: 100px !important;
     }
     /* Chat input container styling - stable selector */
     [data-testid="stChatInput"] {
-        max-width: 100% !important;
+        max-width: 800px !important;
         box-sizing: border-box !important;
         width: 100% !important;
+        margin: 0 auto !important;
+        display: block !important;
     }
     /* Ensure textarea and file input stay within bounds */
     [data-testid="stChatInput"] textarea {
         max-width: 100% !important;
         box-sizing: border-box !important;
         width: 100% !important;
+    }
+    /* Chat input nested containers - consolidated */
+    [data-testid="stChatInput"] > div,
+    [data-testid="stChatInput"] > div > div {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 1em !important;
+    }
+    [data-testid="stChatInput"] > div > div > div {
+        padding: 1em !important;
     }
     [data-testid="stChatInput"] input[type="file"] {
         max-width: 100% !important;
@@ -448,12 +463,6 @@ def main():
     [data-testid="stChatInput"] [data-testid="stFileUploader"]:not(:first-of-type) {
         display: none !important;
     }
-    /* Ensure all nested divs don't overflow */
-    [data-testid="stChatInput"] > div,
-    [data-testid="stChatInput"] > div > div {
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
     /* Fixed chat input container - stable selectors - centered at 80% */
     [data-testid="stBottom"],
     [data-testid="stChatInputContainer"],
@@ -464,10 +473,7 @@ def main():
         right: 0 !important;
         width: auto !important;
         max-width: 100% !important;
-        padding-bottom: 1rem !important;
-        padding-top: 1rem !important;
-        padding-left: 5% !important;
-        padding-right: 5% !important;
+        padding: 1em !important;
         margin: 0 !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
@@ -480,8 +486,6 @@ def main():
     [data-testid="collapsedControl"] ~ * [data-testid="stChatInputContainer"],
     [data-testid="collapsedControl"] ~ * .stChatFloatingInputContainer {
         left: 0 !important;
-        padding-left: 10% !important;
-        padding-right: 10% !important;
     }
     [data-testid="stSidebar"] .block-container {
         padding: 0 !important;
@@ -520,10 +524,13 @@ def main():
     [data-testid="stSidebar"] div:empty {
         display: none !important;
     }
-    /* Reduce spacing between sidebar buttons */
+    /* Sidebar buttons - spacing and centering */
     [data-testid="stSidebar"] .stButton {
         margin-top: 0.25em !important;
         margin-bottom: 0.25em !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3 {
@@ -561,13 +568,10 @@ def main():
     /* Center theme buttons in their cells */
     [data-testid="stSidebar"] button[key="light_mode"],
     [data-testid="stSidebar"] button[key="dark_mode"] {
+        width: 45px !important;
+        height: 45px !important;
         margin: 0 auto !important;
         display: block !important;
-    }
-    [data-testid="stSidebar"] .stButton {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
     }
     [class*="st-emotion"][class*="cache"].row-widget.stHorizontal {
         min-height: auto !important;
@@ -579,10 +583,6 @@ def main():
     [data-testid="stSidebar"] [class*="st-emotion"][class*="cache"] {
         min-height: auto !important;
         padding-bottom: 0 !important;
-    }
-    /* Add bottom padding to prevent messages being hidden */
-    section.main > div.block-container {
-        padding-bottom: 200px !important;
     }
     /* Hide empty columns and dividers that create visual artifacts */
     .stColumn:empty, [data-testid="column"]:empty {
