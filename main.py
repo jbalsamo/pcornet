@@ -265,13 +265,18 @@ def main():
         [data-testid="stStatusWidget"] > div { background-color: #0e1117 !important; color: #fafafa !important; }
         [data-testid="stToolbar"] { background-color: #0e1117 !important; }
         
-        /* Chat input colors and surrounding area */
-        [data-testid="stChatInput"] { background-color: #0e1117 !important; }
-        [data-testid="stChatInput"] textarea { background-color: #1e2130 !important; color: #fafafa !important; 
+        /* Chat input colors and surrounding area - dark gray theme */
+        [data-testid="stChatInput"] { background-color: #262730 !important; }
+        [data-testid="stChatInput"] textarea { background-color: #2d3142 !important; color: #fafafa !important; 
             border: 1px solid #4a5568 !important; }
         [data-testid="stChatInput"] textarea::placeholder { color: #9ca3af !important; }
-        [data-testid="stBottom"], [data-testid="stChatInputContainer"] { background-color: #0e1117 !important; }
-        .stChatFloatingInputContainer { background-color: #0e1117 !important; }
+        /* Fixed input section background */
+        [data-testid="stBottom"], 
+        [data-testid="stChatInputContainer"], 
+        .stChatFloatingInputContainer { 
+            background-color: #262730 !important;
+            border-top: 1px solid #4a5568 !important;
+        }
         
         /* Button colors */
         .stButton > button { background-color: #262730 !important; color: #fafafa !important; border: 2px solid #404050 !important; }
@@ -298,9 +303,14 @@ def main():
         section[data-testid="stMain"] { background-color: #0e1117 !important; }
         [data-testid="stAppViewContainer"] { background-color: #0e1117 !important; }
         
-        /* Ensure all input containers are dark */
+        /* Ensure nested input containers inherit parent background */
         [data-testid="stChatInput"] > div, 
-        [data-testid="stChatInput"] > div > div { background-color: #0e1117 !important; }
+        [data-testid="stChatInput"] > div > div { background-color: inherit !important; }
+        
+        /* Fix dark mode input container */
+        .st-bz {
+            background-color: black;
+        }
         </style>
         """
     else:
@@ -310,9 +320,16 @@ def main():
         [data-testid="collapsedControl"] { background-color: #4b5563 !important; color: #ffffff !important; }
         [data-testid="collapsedControl"]:hover { background-color: #374151 !important; }
         
-        /* Chat input colors */
-        [data-testid="stChatInput"] textarea { background-color: #f8f9fa !important; border: 1px solid #9ca3af !important; }
+        /* Chat input colors - reversed */
+        [data-testid="stChatInput"] textarea { background-color: #ffffff !important; border: 1px solid #9ca3af !important; }
         [data-testid="stChatInput"] textarea::placeholder { color: #6b7280 !important; }
+        /* Fixed input section background */
+        [data-testid="stBottom"], 
+        [data-testid="stChatInputContainer"], 
+        .stChatFloatingInputContainer { 
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #e5e7eb !important;
+        }
         
         /* Theme toggle buttons */
         button[key="light_mode"] { background: #e5e7eb !important; color: #1a202c !important; }
@@ -333,6 +350,32 @@ def main():
     /* CSS Specificity Booster - ensures our styles override Streamlit config */
     :root {
         --custom-override: true;
+        --input-section-height: 80px;
+    }
+    
+    /* Main container split: scrollable top section + fixed bottom input */
+    section.main {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: relative !important;
+    }
+    
+    /* Chat messages area - scrollable top section extending to edge */
+    section.main > div.block-container {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding-bottom: calc(var(--input-section-height) + 1em) !important;
+        min-height: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
     }
     
     /* Title with minimal padding and margins */
@@ -348,8 +391,9 @@ def main():
     }
     /* Main block container - reduce top padding */
     .block-container {
-        padding-top: 0.25em !important;
+        padding-top: 0.5em !important;
         margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
     /* Reduce divider margins */
     hr {
@@ -421,15 +465,16 @@ def main():
     section.main div.element-container > div {
         padding: 0px !important;
     }
-    /* Block container bottom padding - stable selector */
-    section.main > div.block-container {
-        padding-bottom: 100px !important;
+    /* Additional padding for chat content within scrollable area */
+    section.main > div.block-container > div {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
     }
     /* Chat input container styling - stable selector */
     [data-testid="stChatInput"] {
-        max-width: 800px !important;
+        max-width: 90% !important;
         box-sizing: border-box !important;
-        width: 100% !important;
+        width: 90% !important;
         margin: 0 auto !important;
         display: block !important;
     }
@@ -438,6 +483,9 @@ def main():
         max-width: 100% !important;
         box-sizing: border-box !important;
         width: 100% !important;
+        height: 1.2em !important;
+        min-height: 1.2em !important;
+        line-height: 1.2em !important;
     }
     /* Chat input nested containers - consolidated */
     [data-testid="stChatInput"] > div,
@@ -445,6 +493,7 @@ def main():
         max-width: 100% !important;
         box-sizing: border-box !important;
         padding: 1em !important;
+        background-color: inherit !important;
     }
     [data-testid="stChatInput"] > div > div > div {
         padding: 1em !important;
@@ -463,7 +512,7 @@ def main():
     [data-testid="stChatInput"] [data-testid="stFileUploader"]:not(:first-of-type) {
         display: none !important;
     }
-    /* Fixed chat input container - stable selectors - centered at 80% */
+    /* Fixed chat input section at bottom - extends to browser edge */
     [data-testid="stBottom"],
     [data-testid="stChatInputContainer"],
     .stChatFloatingInputContainer {
@@ -472,14 +521,17 @@ def main():
         left: var(--sidebar-width, 21rem) !important;
         right: 0 !important;
         width: auto !important;
-        max-width: 100% !important;
+        height: var(--input-section-height) !important;
         padding: 1em !important;
         margin: 0 !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
-        z-index: 99 !important;
-        /* Ensure background doesn't extend beyond bounds */
-        contain: layout !important;
+        overflow: visible !important;
+        z-index: 100 !important;
+        flex-shrink: 0 !important;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     /* Chat input when sidebar is collapsed */
     [data-testid="collapsedControl"] ~ * [data-testid="stBottom"],
